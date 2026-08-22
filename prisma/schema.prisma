@@ -1,16 +1,166 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
-enum RiskLevel { LOW SOME_CONCERNS MODERATE HIGH VERY_HIGH UNABLE_TO_VERIFY }
-enum CheckStatus { VERIFIED ANALYZED UNVERIFIED UNAVAILABLE MISMATCH }
-model User { id String @id @default(cuid()) email String @unique passwordHash String name String? createdAt DateTime @default(now()) updatedAt DateTime @updatedAt scans RentalScan[] subscriptions Subscription[] payments Payment[] }
-model RentalScan { id String @id @default(cuid()) userId String? user User? @relation(fields:[userId],references:[id],onDelete:SetNull) property Property? listing Listing? contact Contact? score Int riskLevel RiskLevel confidence String createdAt DateTime @default(now()) updatedAt DateTime @updatedAt signals RiskSignal[] checks VerificationCheck[] conversation ConversationAnalysis? images UploadedImage[] report Report? }
-model Property { id String @id @default(cuid()) scanId String @unique scan RentalScan @relation(fields:[scanId],references:[id],onDelete:Cascade) address String zip String? bedrooms Float? bathrooms Float? advertisedRent Decimal @db.Decimal(10,2) estimatedRent Decimal? @db.Decimal(10,2) parcelId String? ownerName String? }
-model Listing { id String @id @default(cuid()) scanId String @unique scan RentalScan @relation(fields:[scanId],references:[id],onDelete:Cascade) url String? text String? source String? descriptionHash String? }
-model Contact { id String @id @default(cuid()) scanId String @unique scan RentalScan @relation(fields:[scanId],references:[id],onDelete:Cascade) name String? phone String? email String? company String? }
-model RiskSignal { id String @id @default(cuid()) scanId String scan RentalScan @relation(fields:[scanId],references:[id],onDelete:Cascade) code String title String explanation String severity String category String evidence String? deduction Int }
-model VerificationCheck { id String @id @default(cuid()) scanId String scan RentalScan @relation(fields:[scanId],references:[id],onDelete:Cascade) name String status CheckStatus detail String category String provider String? }
-model ConversationAnalysis { id String @id @default(cuid()) scanId String @unique scan RentalScan @relation(fields:[scanId],references:[id],onDelete:Cascade) redactedText String? summary String? createdAt DateTime @default(now()) expiresAt DateTime? }
-model UploadedImage { id String @id @default(cuid()) scanId String scan RentalScan @relation(fields:[scanId],references:[id],onDelete:Cascade) fileName String mimeType String size Int storageKey String? extractedText String? createdAt DateTime @default(now()) }
-model Report { id String @id @default(cuid()) scanId String @unique scan RentalScan @relation(fields:[scanId],references:[id],onDelete:Cascade) content Json createdAt DateTime @default(now()) }
-model Subscription { id String @id @default(cuid()) userId String user User @relation(fields:[userId],references:[id],onDelete:Cascade) plan String status String providerId String? currentPeriodEnd DateTime? createdAt DateTime @default(now()) }
-model Payment { id String @id @default(cuid()) userId String user User @relation(fields:[userId],references:[id],onDelete:Cascade) amount Int currency String @default("usd") status String providerId String? createdAt DateTime @default(now()) }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RiskLevel {
+  LOW
+  SOME_CONCERNS
+  MODERATE
+  HIGH
+  VERY_HIGH
+  UNABLE_TO_VERIFY
+}
+
+enum CheckStatus {
+  VERIFIED
+  ANALYZED
+  UNVERIFIED
+  UNAVAILABLE
+  MISMATCH
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  scans        RentalScan[]
+  subscriptions Subscription[]
+  payments     Payment[]
+}
+
+model RentalScan {
+  id           String                @id @default(cuid())
+  userId       String?
+  user         User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  property     Property?
+  listing      Listing?
+  contact      Contact?
+  score        Int
+  riskLevel    RiskLevel
+  confidence   String
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  signals      RiskSignal[]
+  checks       VerificationCheck[]
+  conversation ConversationAnalysis?
+  images       UploadedImage[]
+  report       Report?
+}
+
+model Property {
+  id             String     @id @default(cuid())
+  scanId         String     @unique
+  scan           RentalScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  address        String
+  zip            String?
+  bedrooms       Float?
+  bathrooms      Float?
+  advertisedRent Decimal    @db.Decimal(10, 2)
+  estimatedRent  Decimal?   @db.Decimal(10, 2)
+  parcelId       String?
+  ownerName      String?
+}
+
+model Listing {
+  id              String     @id @default(cuid())
+  scanId          String     @unique
+  scan            RentalScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  url             String?
+  text            String?
+  source          String?
+  descriptionHash String?
+}
+
+model Contact {
+  id      String     @id @default(cuid())
+  scanId  String     @unique
+  scan    RentalScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  name    String?
+  phone   String?
+  email   String?
+  company String?
+}
+
+model RiskSignal {
+  id          String     @id @default(cuid())
+  scanId      String
+  scan        RentalScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  code        String
+  title       String
+  explanation String
+  severity    String
+  category    String
+  evidence    String?
+  deduction   Int
+}
+
+model VerificationCheck {
+  id       String      @id @default(cuid())
+  scanId   String
+  scan     RentalScan  @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  name     String
+  status   CheckStatus
+  detail   String
+  category String
+  provider String?
+}
+
+model ConversationAnalysis {
+  id           String     @id @default(cuid())
+  scanId       String     @unique
+  scan         RentalScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  redactedText String?
+  summary      String?
+  createdAt    DateTime   @default(now())
+  expiresAt    DateTime?
+}
+
+model UploadedImage {
+  id            String     @id @default(cuid())
+  scanId        String
+  scan          RentalScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  fileName      String
+  mimeType      String
+  size          Int
+  storageKey    String?
+  extractedText String?
+  createdAt     DateTime   @default(now())
+}
+
+model Report {
+  id        String     @id @default(cuid())
+  scanId    String     @unique
+  scan      RentalScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  content   Json
+  createdAt DateTime   @default(now())
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan             String
+  status           String
+  providerId       String?
+  currentPeriodEnd DateTime?
+  createdAt        DateTime @default(now())
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount     Int
+  currency   String   @default("usd")
+  status     String
+  providerId String?
+  createdAt  DateTime @default(now())
+}

@@ -105,7 +105,7 @@ export const listingRules: Rule[] = [
     deduction: 4,
   },
 ];
-export function analyzeText(text = "") {
+export function analyzeText(text = ""): RiskSignalInput[] {
   return listingRules
     .filter((r) => r.pattern.test(text))
     .map(({ pattern, ...signal }) => ({
