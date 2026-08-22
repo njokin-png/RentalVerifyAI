@@ -2,14 +2,8 @@ import Link from "next/link";
 import type { ScanResult } from "@/lib/types";
 import { ScoreRing } from "./ScoreRing";
 import { Disclaimer } from "./Disclaimer";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  HelpCircle,
-  Printer,
-  ShieldQuestion,
-} from "lucide-react";
 import { checkStatusLabel } from "@/lib/check-status";
+
 export function ResultsView({ scan }: { scan: ScanResult }) {
   const top = scan.signals
     .slice()
@@ -21,6 +15,7 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
     (c) => c.status === "unverified" || c.status === "mismatch",
   );
   const unavailable = scan.checks.filter((c) => c.status === "unavailable");
+
   return (
     <div className="space-y-7">
       <section className="card p-7 grid md:grid-cols-[auto_1fr] gap-8 items-center">
@@ -54,7 +49,9 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
           )}
         </div>
       </section>
+
       <Disclaimer />
+
       <section>
         <h2 className="text-2xl font-extrabold mb-4">Top concerns</h2>
         {top.length ? (
@@ -64,8 +61,7 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
                 className="card p-5 border-l-4 border-l-amber"
                 key={s.code}
               >
-                <AlertTriangle className="text-amber" aria-hidden="true" />
-                <h3 className="font-bold mt-3">{s.title}</h3>
+                <h3 className="font-bold">{s.title}</h3>
                 <p className="text-sm text-slate-600 mt-2">{s.explanation}</p>
                 {s.evidence && (
                   <p className="text-xs bg-slate-50 p-2 rounded mt-3">
@@ -82,12 +78,10 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
           </div>
         )}
       </section>
+
       <section className="grid md:grid-cols-2 gap-6">
         <div className="card p-6">
-          <h2 className="font-extrabold text-xl flex gap-2">
-            <CheckCircle2 className="text-teal" aria-hidden="true" />
-            Verified information
-          </h2>
+          <h2 className="font-extrabold text-xl">Verified information</h2>
           <div className="mt-4 space-y-4">
             {verified.map((c) => (
               <div key={c.name}>
@@ -97,11 +91,9 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
             ))}
           </div>
         </div>
+
         <div className="card p-6 border-2 border-amber-300 bg-amber-50/60">
-          <h2 className="font-extrabold text-xl flex gap-2">
-            <HelpCircle className="text-amber" aria-hidden="true" />
-            Verification gaps
-          </h2>
+          <h2 className="font-extrabold text-xl">Verification gaps</h2>
           <div className="mt-4 space-y-4">
             {[...unavailable, ...unresolved].map((c) => (
               <div key={c.name}>
@@ -114,6 +106,7 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
           </div>
         </div>
       </section>
+
       {analyzed.length > 0 && (
         <section className="card p-6">
           <h2 className="font-extrabold text-xl">Analyzed information</h2>
@@ -129,6 +122,7 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
           </div>
         </section>
       )}
+
       <section>
         <h2 className="text-2xl font-extrabold mb-4">
           Investigation categories
@@ -137,8 +131,7 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
           {Array.from(new Set(scan.checks.map((c) => c.category))).map(
             (category) => (
               <div className="card p-5" key={category}>
-                <ShieldQuestion className="text-teal" aria-hidden="true" />
-                <h3 className="font-bold capitalize mt-3">{category}</h3>
+                <h3 className="font-bold capitalize">{category}</h3>
                 <p className="text-sm text-slate-600 mt-1">
                   {scan.checks.filter((c) => c.category === category).length}{" "}
                   checks ·{" "}
@@ -150,24 +143,18 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
           )}
         </div>
       </section>
+
       <section className="card p-7">
         <h2 className="text-2xl font-extrabold">Recommended next actions</h2>
-        <ul className="mt-4 grid md:grid-cols-2 gap-3">
-          {scan.recommendations.map((r, i) => (
-            <li className="flex gap-3 text-sm" key={r}>
-              <span
-                aria-hidden="true"
-                className="bg-teal text-white rounded-full w-6 h-6 grid place-items-center shrink-0"
-              >
-                {i + 1}
-              </span>
+        <ol className="list-decimal pl-5 mt-4 grid md:grid-cols-2 gap-3 text-sm">
+          {scan.recommendations.map((r) => (
+            <li className="pl-1" key={r}>
               {r}
             </li>
           ))}
-        </ul>
+        </ol>
         <div className="mt-7 flex gap-3">
           <Link className="btn" href={`/report/${scan.id}`}>
-            <Printer size={18} className="mr-2" aria-hidden="true" />
             View printable report
           </Link>
           <Link className="px-4 py-3 font-bold" href="/analyze">
