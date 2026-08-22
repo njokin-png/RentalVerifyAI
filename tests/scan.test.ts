@@ -16,4 +16,35 @@ describe("rental scan creation", () => {
     expect(r.signals.length).toBeGreaterThan(0);
     expect(r.estimatedRent).toBe(3400);
   });
+  it("reduces score and confidence when clean input has verification gaps", async () => {
+    const result = await analyzeRental(
+      {
+        address: "48 Harbor Way, San Francisco, CA 94107",
+        zip: "94107",
+        advertisedRent: 3200,
+      },
+      "clean-incomplete",
+    );
+
+    expect(result.signals).toHaveLength(0);
+    expect(result.checksUnavailable).toBeGreaterThanOrEqual(3);
+    expect(result.verificationGapDeduction).toBeGreaterThan(0);
+    expect(result.score).toBeLessThan(90);
+    expect(result.classification).not.toBe("Low Risk");
+    expect(result.confidence).toBe("Low");
+  });
+  it("marks supplied communication as analyzed rather than verified", async () => {
+    const result = await analyzeRental(
+      {
+        address: "48 Harbor Way, San Francisco, CA 94107",
+        advertisedRent: 3000,
+        conversation: "Please let me know when you can tour.",
+      },
+      "communication-status",
+    );
+    expect(
+      result.checks.find((check) => check.name === "Communication review")
+        ?.status,
+    ).toBe("analyzed");
+  });
 });
