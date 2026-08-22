@@ -1,5 +1,7 @@
 export const scoringConfig = {
   baseScore: 100,
+  unavailableCheckDeduction: 4,
+  maximumUnavailableDeduction: 20,
   severityCaps: { low: 4, medium: 9, high: 16, critical: 25 },
   classification: [
     { min: 90, label: "Low Risk" },
