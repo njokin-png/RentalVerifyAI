@@ -10,6 +10,17 @@ type Rule = {
 };
 export const listingRules: Rule[] = [
   {
+    code: "PAYMENT_PRESSURE",
+    pattern:
+      /(?:pay|send|transfer|wire)(?:\s+(?:me|us|the|your|a))?\s+(?:deposit|rent|money|payment|fee|funds)?\s*(?:right\s+now|now|today|immediately)|(?:deposit|rent|payment|fee)\s+(?:is\s+)?(?:due|required)\s+(?:now|today|immediately)/i,
+    title: "Immediate payment pressure",
+    explanation:
+      "The message pressures the renter to send money immediately or today, before there is time for normal verification.",
+    severity: "high",
+    category: "payment",
+    deduction: 14,
+  },
+  {
     code: "PAY_WIRE",
     pattern: /wire transfer|western union|moneygram/i,
     title: "Irreversible payment requested",
@@ -53,7 +64,7 @@ export const listingRules: Rule[] = [
   {
     code: "URGENCY",
     pattern:
-      /act (now|fast)|today only|immediately|many (other )?(renters|applicants)|won't last|send (it|money) now/i,
+      /act (now|fast)|today only|immediately|(?:many\s+)?other (?:renters|applicants)(?: are)? (?:waiting|interested)|many (other )?(renters|applicants)|won't last|send (it|money) now/i,
     title: "Pressure or urgency",
     explanation:
       "The language pressures the renter to act before completing normal checks.",
