@@ -1,4 +1,5 @@
 import type { ScanResult } from "@/lib/types";
+import { checkStatusLabel } from "@/lib/check-status";
 export function reportData(scan: ScanResult) {
   return {
     title: "RentalVerify AI Investigation Report",
@@ -20,9 +21,13 @@ export function reportData(scan: ScanResult) {
       score: scan.score,
       classification: scan.classification,
       confidence: scan.confidence,
+      verificationGapDeduction: scan.verificationGapDeduction,
     },
     signals: scan.signals,
-    checks: scan.checks,
+    checks: scan.checks.map((check) => ({
+      ...check,
+      statusLabel: checkStatusLabel(check.status),
+    })),
     recommendations: scan.recommendations,
   };
 }

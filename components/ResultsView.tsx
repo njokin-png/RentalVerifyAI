@@ -9,13 +9,18 @@ import {
   Printer,
   ShieldQuestion,
 } from "lucide-react";
+import { checkStatusLabel } from "@/lib/check-status";
 export function ResultsView({ scan }: { scan: ScanResult }) {
   const top = scan.signals
     .slice()
     .sort((a, b) => b.deduction - a.deduction)
     .slice(0, 3);
   const verified = scan.checks.filter((c) => c.status === "verified");
-  const gaps = scan.checks.filter((c) => c.status !== "verified");
+  const analyzed = scan.checks.filter((c) => c.status === "analyzed");
+  const unresolved = scan.checks.filter(
+    (c) => c.status === "unverified" || c.status === "mismatch",
+  );
+  const unavailable = scan.checks.filter((c) => c.status === "unavailable");
   return (
     <div className="space-y-7">
       <section className="card p-7 grid md:grid-cols-[auto_1fr] gap-8 items-center">
@@ -40,6 +45,13 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
               <b>{scan.signals.length}</b> risk signals
             </span>
           </div>
+          {scan.verificationGapDeduction > 0 && (
+            <p className="mt-4 text-sm text-amber-800">
+              The score includes a {scan.verificationGapDeduction}-point
+              deduction because some independent verification checks were
+              unavailable. Missing evidence is not evidence of safety.
+            </p>
+          )}
         </div>
       </section>
       <Disclaimer />
@@ -52,7 +64,7 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
                 className="card p-5 border-l-4 border-l-amber"
                 key={s.code}
               >
-                <AlertTriangle className="text-amber" />
+                <AlertTriangle className="text-amber" aria-hidden="true" />
                 <h3 className="font-bold mt-3">{s.title}</h3>
                 <p className="text-sm text-slate-600 mt-2">{s.explanation}</p>
                 {s.evidence && (
@@ -73,7 +85,7 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
       <section className="grid md:grid-cols-2 gap-6">
         <div className="card p-6">
           <h2 className="font-extrabold text-xl flex gap-2">
-            <CheckCircle2 className="text-teal" />
+            <CheckCircle2 className="text-teal" aria-hidden="true" />
             Verified information
           </h2>
           <div className="mt-4 space-y-4">
@@ -85,16 +97,16 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
             ))}
           </div>
         </div>
-        <div className="card p-6">
+        <div className="card p-6 border-2 border-amber-300 bg-amber-50/60">
           <h2 className="font-extrabold text-xl flex gap-2">
-            <HelpCircle className="text-amber" />
-            Unverified & unavailable
+            <HelpCircle className="text-amber" aria-hidden="true" />
+            Verification gaps
           </h2>
           <div className="mt-4 space-y-4">
-            {gaps.map((c) => (
+            {[...unavailable, ...unresolved].map((c) => (
               <div key={c.name}>
                 <b className="text-sm">
-                  {c.name} · {c.status}
+                  {c.name} · {checkStatusLabel(c.status)}
                 </b>
                 <p className="text-sm text-slate-600">{c.detail}</p>
               </div>
@@ -102,6 +114,21 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
           </div>
         </div>
       </section>
+      {analyzed.length > 0 && (
+        <section className="card p-6">
+          <h2 className="font-extrabold text-xl">Analyzed information</h2>
+          <div className="mt-4 space-y-4">
+            {analyzed.map((c) => (
+              <div key={c.name}>
+                <b className="text-sm">
+                  {c.name} · {checkStatusLabel(c.status)}
+                </b>
+                <p className="text-sm text-slate-600">{c.detail}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       <section>
         <h2 className="text-2xl font-extrabold mb-4">
           Investigation categories
@@ -110,7 +137,7 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
           {Array.from(new Set(scan.checks.map((c) => c.category))).map(
             (category) => (
               <div className="card p-5" key={category}>
-                <ShieldQuestion className="text-teal" />
+                <ShieldQuestion className="text-teal" aria-hidden="true" />
                 <h3 className="font-bold capitalize mt-3">{category}</h3>
                 <p className="text-sm text-slate-600 mt-1">
                   {scan.checks.filter((c) => c.category === category).length}{" "}
@@ -125,19 +152,22 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
       </section>
       <section className="card p-7">
         <h2 className="text-2xl font-extrabold">Recommended next actions</h2>
-        <ol className="mt-4 grid md:grid-cols-2 gap-3">
+        <ul className="mt-4 grid md:grid-cols-2 gap-3">
           {scan.recommendations.map((r, i) => (
             <li className="flex gap-3 text-sm" key={r}>
-              <span className="bg-teal text-white rounded-full w-6 h-6 grid place-items-center shrink-0">
+              <span
+                aria-hidden="true"
+                className="bg-teal text-white rounded-full w-6 h-6 grid place-items-center shrink-0"
+              >
                 {i + 1}
               </span>
               {r}
             </li>
           ))}
-        </ol>
+        </ul>
         <div className="mt-7 flex gap-3">
           <Link className="btn" href={`/report/${scan.id}`}>
-            <Printer size={18} className="mr-2" />
+            <Printer size={18} className="mr-2" aria-hidden="true" />
             View printable report
           </Link>
           <Link className="px-4 py-3 font-bold" href="/analyze">

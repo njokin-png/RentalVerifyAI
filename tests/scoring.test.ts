@@ -6,7 +6,7 @@ const checks: Check[] = [
   { name: "b", status: "unavailable", detail: "", category: "image" },
 ];
 describe("transparent scoring", () => {
-  it("starts at 100 and deducts configured signal values", () => {
+  it("deducts both configured signal values and unavailable checks", () => {
     const signals: RiskSignalInput[] = [
       {
         code: "x",
@@ -18,10 +18,44 @@ describe("transparent scoring", () => {
       },
     ];
     expect(calculateScore(signals, checks)).toMatchObject({
-      score: 93,
-      classification: "Low Risk",
+      score: 89,
+      classification: "Some Concerns",
       checksCompleted: 1,
       checksUnavailable: 1,
+      verificationGapDeduction: 4,
+    });
+  });
+  it("does not present missing verification as a perfect low-risk score", () => {
+    const incompleteChecks: Check[] = [
+      { name: "address", status: "verified", detail: "", category: "property" },
+      { name: "rent", status: "verified", detail: "", category: "rent" },
+      {
+        name: "owner",
+        status: "unavailable",
+        detail: "",
+        category: "identity",
+      },
+      {
+        name: "parcel",
+        status: "unavailable",
+        detail: "",
+        category: "property",
+      },
+      {
+        name: "duplicate",
+        status: "unavailable",
+        detail: "",
+        category: "duplicate",
+      },
+      { name: "image", status: "unavailable", detail: "", category: "image" },
+    ];
+
+    expect(calculateScore([], incompleteChecks)).toMatchObject({
+      score: 84,
+      classification: "Some Concerns",
+      confidence: "Low",
+      checksUnavailable: 4,
+      verificationGapDeduction: 16,
     });
   });
   it("clamps at zero", () => {
