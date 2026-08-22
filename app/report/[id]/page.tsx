@@ -33,6 +33,13 @@ export default function Report({ params }: { params: { id: string } }) {
             <b>{r.assessment.confidence}</b>
           </div>
         </div>
+        {r.assessment.verificationGapDeduction > 0 && (
+          <p className="mt-5 border-t pt-4 text-sm text-amber-800">
+            The score includes a {r.assessment.verificationGapDeduction}-point
+            deduction for unavailable verification checks. Missing evidence is
+            not evidence of safety.
+          </p>
+        )}
       </div>
       <section className="card p-7 mt-6">
         <h2 className="text-xl font-extrabold">Property & contact</h2>
@@ -77,13 +84,20 @@ export default function Report({ params }: { params: { id: string } }) {
           </p>
         )}
       </section>
-      <section className="card p-7 mt-6">
+      <section className="card p-7 mt-6 border-2 border-amber-300">
         <h2 className="text-xl font-extrabold">Verification checks</h2>
         <ul className="mt-4 space-y-3">
           {r.checks.map((c) => (
-            <li key={c.name} className="text-sm">
+            <li
+              key={c.name}
+              className={`text-sm rounded-lg p-3 ${
+                c.status === "unavailable"
+                  ? "bg-amber-50 border border-amber-200"
+                  : "bg-slate-50"
+              }`}
+            >
               <b>
-                {c.name} · {c.status}
+                {c.name} · {c.statusLabel}
               </b>
               <p className="text-slate-600">{c.detail}</p>
             </li>
