@@ -14,6 +14,7 @@ const base = (
   confidence: "High",
   checksCompleted: 7,
   checksUnavailable: 3,
+  verificationGapDeduction: 12,
   signals: title
     ? [
         {
