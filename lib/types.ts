@@ -25,7 +25,7 @@ export type ScanInput = {
 };
 export type Check = {
   name: string;
-  status: "verified" | "unverified" | "unavailable" | "mismatch";
+  status: "verified" | "analyzed" | "unverified" | "unavailable" | "mismatch";
   detail: string;
   category: string;
 };
@@ -37,6 +37,7 @@ export type ScanResult = {
   confidence: "Low" | "Medium" | "High";
   checksCompleted: number;
   checksUnavailable: number;
+  verificationGapDeduction: number;
   signals: RiskSignalInput[];
   checks: Check[];
   recommendations: string[];
