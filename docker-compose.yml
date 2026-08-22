@@ -1,0 +1,10 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: rentalverify
+      POSTGRES_PASSWORD: rentalverify
+      POSTGRES_DB: rentalverify
+    ports: ["5432:5432"]
+    volumes: [rentalverify_data:/var/lib/postgresql/data]
+volumes: { rentalverify_data: {} }
