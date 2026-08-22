@@ -35,7 +35,7 @@ export async function analyzeRental(
     {
       name: "Communication review",
       status: input.conversation
-        ? ("verified" as const)
+        ? ("analyzed" as const)
         : ("unverified" as const),
       detail: input.conversation
         ? "Messages were checked against explainable risk rules."
