@@ -1,11 +1,21 @@
 import { notFound } from "next/navigation";
 import { scanStore } from "@/lib/store";
 import { getDemoScan } from "@/lib/demo";
+import { getSession } from "@/lib/auth";
+import { getScan } from "@/services/scans/repository";
 import { reportData } from "@/services/reports/generator";
 import { Disclaimer } from "@/components/Disclaimer";
 import { PrintButton } from "@/components/PrintButton";
-export default function Report({ params }: { params: { id: string } }) {
-  const scan = scanStore.get(params.id) || getDemoScan(params.id);
+export default async function Report({ params }: { params: { id: string } }) {
+  const session = await getSession();
+  let scan = scanStore.get(params.id) || getDemoScan(params.id);
+  if (!scan) {
+    try {
+      scan = (await getScan(params.id, session?.userId)) ?? undefined;
+    } catch {
+      scan = undefined;
+    }
+  }
   if (!scan) notFound();
   const r = reportData(scan);
   return (
