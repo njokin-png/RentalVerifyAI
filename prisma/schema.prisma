@@ -25,34 +25,40 @@ enum CheckStatus {
 }
 
 model User {
-  id           String         @id @default(cuid())
-  email        String         @unique
-  passwordHash String
-  name         String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  scans        RentalScan[]
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  scans         RentalScan[]
   subscriptions Subscription[]
-  payments     Payment[]
+  payments      Payment[]
 }
 
 model RentalScan {
-  id           String                @id @default(cuid())
-  userId       String?
-  user         User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
-  property     Property?
-  listing      Listing?
-  contact      Contact?
-  score        Int
-  riskLevel    RiskLevel
-  confidence   String
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
-  signals      RiskSignal[]
-  checks       VerificationCheck[]
-  conversation ConversationAnalysis?
-  images       UploadedImage[]
-  report       Report?
+  id                       String                @id
+  userId                   String?
+  user                     User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  property                 Property?
+  listing                  Listing?
+  contact                  Contact?
+  score                    Int
+  riskLevel                RiskLevel
+  confidence               String
+  checksCompleted          Int                   @default(0)
+  checksUnavailable        Int                   @default(0)
+  verificationGapDeduction Int                   @default(0)
+  recommendations          String[]              @default([])
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+  signals                  RiskSignal[]
+  checks                   VerificationCheck[]
+  conversation             ConversationAnalysis?
+  images                   UploadedImage[]
+  report                   Report?
+
+  @@index([userId, createdAt])
 }
 
 model Property {
