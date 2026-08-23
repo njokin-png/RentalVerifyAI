@@ -1,33 +1,18 @@
-import type { Check, ScanInput } from "@/lib/types";
-export interface PropertyProvider {
-  verify(input: ScanInput): Promise<Check[]>;
-}
+import type { ScanInput } from "@/lib/types";
+import type { PropertyProvider } from "./provider-interface";
+import type { PropertyVerificationResult } from "./types";
+
 export class DemoPropertyProvider implements PropertyProvider {
-  async verify(i: ScanInput) {
-    return [
-      {
-        name: "Address format",
-        status:
-          i.address.length > 8
-            ? ("verified" as const)
-            : ("unverified" as const),
-        detail:
-          "Address passed basic format validation; ownership is not confirmed.",
-        category: "property",
-      },
-      {
-        name: "Ownership records",
-        status: "unavailable" as const,
-        detail:
-          "Connect a local records or property-data provider to verify ownership.",
-        category: "property",
-      },
-      {
-        name: "Parcel and tax data",
-        status: "unavailable" as const,
-        detail: "Not available in demo mode.",
-        category: "property",
-      },
-    ];
+  async verify(input: ScanInput): Promise<PropertyVerificationResult> {
+    const usableAddress = input.address.trim().length > 8;
+    return usableAddress
+      ? {
+          source: "demo",
+          record: { formattedAddress: input.address.trim() },
+        }
+      : {
+          source: "demo",
+          error: "Address could not be validated in demo mode.",
+        };
   }
 }
