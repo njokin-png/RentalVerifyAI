@@ -1,10 +1,10 @@
 import { getSession } from "@/lib/auth";
 import { ScanHistoryTable } from "@/components/ScanHistoryTable";
-import { listUserScans } from "@/services/scans/repository";
+import { listUserScans, type ScanHistoryItem } from "@/services/scans/repository";
 
 export default async function History() {
   const session = await getSession();
-  let scans = [];
+  let scans: ScanHistoryItem[] = [];
   let unavailable = false;
 
   if (session?.userId) {
