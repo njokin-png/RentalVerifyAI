@@ -32,12 +32,13 @@ export async function POST(req: NextRequest) {
     });
     await createSession(user);
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json(
-      {
-        error: "Unable to create account. The email may already be registered.",
-      },
-      { status: 400 },
-    );
-  }
+ } catch (error) {
+  console.error("Signup error:", error);
+  return NextResponse.json(
+    {
+      error: "Unable to create account. The email may already be registered.",
+    },
+    { status: 400 },
+  );
+}
 }

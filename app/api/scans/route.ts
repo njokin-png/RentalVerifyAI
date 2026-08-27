@@ -30,8 +30,10 @@ export async function POST(req: NextRequest) {
 
     try {
       await saveScan(result, session?.userId);
-    } catch {
+       } catch (error) {
+      console.error("Save scan error:", error);
       if (process.env.DEMO_MODE === "true") {
+     
         scanStore.set(result.id, result);
       } else {
         return NextResponse.json(
