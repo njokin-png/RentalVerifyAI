@@ -6,15 +6,21 @@ import { DemoContactProvider } from "@/services/contact/provider";
 import { DemoRentProvider, evaluateRent } from "@/services/rent/provider";
 import { DemoDuplicateProvider } from "@/services/duplicates/provider";
 import { calculateScore } from "./engine";
+import { analyzeImages } from "@/services/images/analyze";
+import type { ImageProviders } from "@/services/images/provider";
 
 export async function analyzeRental(
   input: ScanInput,
   id = crypto.randomUUID(),
+  images: File[] = [],
+  imageProviders?: ImageProviders,
 ): Promise<ScanResult> {
   const text = [input.listingText, input.conversation]
     .filter(Boolean)
     .join("\n");
   const signals = analyzeText(text);
+  const imageAnalysis = await analyzeImages(images, imageProviders);
+  signals.push(...imageAnalysis.signals);
 
   const propertyResult = await getPropertyProvider().verify(input);
   const property = propertyChecks(input, propertyResult);
@@ -31,12 +37,7 @@ export async function analyzeRental(
     ...contact.checks,
     ...duplicates.checks,
     rent.check,
-    {
-      name: "Reverse image verification",
-      status: "unavailable" as const,
-      detail: "Unavailable until a reverse-image provider API is configured.",
-      category: "image",
-    },
+    ...imageAnalysis.checks,
     {
       name: "Communication review",
       status: input.conversation
@@ -66,6 +67,10 @@ export async function analyzeRental(
     estimatedRent: estimated || undefined,
     rentDifferencePercent: rent.difference,
     createdAt: new Date().toISOString(),
-    reverseImageAvailable: false,
+    reverseImageAvailable: !imageAnalysis.checks.some(
+      (check) =>
+        check.name === "Reverse image verification" &&
+        check.status === "unavailable",
+    ),
   };
 }

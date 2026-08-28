@@ -5,6 +5,7 @@ import { analyzeRental } from "@/services/scoring/analyze";
 import { scanStore } from "@/lib/store";
 import { getSession } from "@/lib/auth";
 import { saveScan } from "@/services/scans/repository";
+import { validateImageFiles } from "@/services/images/provider";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "local";
@@ -15,7 +16,28 @@ export async function POST(req: NextRequest) {
     );
 
   try {
-    const parsed = scanSchema.safeParse(await req.json());
+    const contentType = req.headers.get("content-type") || "";
+    let candidate: unknown;
+    let images: File[] = [];
+    if (contentType.includes("multipart/form-data")) {
+      const form = await req.formData();
+      images = form
+        .getAll("images")
+        .filter(
+          (value): value is File => value instanceof File && value.size > 0,
+        );
+      const imageError = validateImageFiles(images);
+      if (imageError)
+        return NextResponse.json({ error: imageError }, { status: 400 });
+      candidate = Object.fromEntries(
+        Array.from(form.entries()).filter(
+          ([key, value]) => key !== "images" && typeof value === "string",
+        ),
+      );
+    } else {
+      candidate = await req.json();
+    }
+    const parsed = scanSchema.safeParse(candidate);
     if (!parsed.success)
       return NextResponse.json(
         {
@@ -25,19 +47,20 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
 
-    const result = await analyzeRental(parsed.data);
+    const result = await analyzeRental(parsed.data, undefined, images);
     const session = await getSession();
 
     try {
       await saveScan(result, session?.userId);
-       } catch (error) {
+    } catch (error) {
       console.error("Save scan error:", error);
       if (process.env.DEMO_MODE === "true") {
-     
         scanStore.set(result.id, result);
       } else {
         return NextResponse.json(
-          { error: "Scan history is temporarily unavailable. Please try again." },
+          {
+            error: "Scan history is temporarily unavailable. Please try again.",
+          },
           { status: 503 },
         );
       }

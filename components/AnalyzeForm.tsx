@@ -10,20 +10,11 @@ export function AnalyzeForm() {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const fd = new FormData(e.currentTarget);
-    const data: Record<string, string | number> = Object.fromEntries(
-      Array.from(fd.entries(), ([key, value]) => [
-        key,
-        typeof value === "string" ? value : "",
-      ]),
-    );
-    for (const k of ["advertisedRent", "bedrooms", "bathrooms"])
-      if (data[k]) data[k] = Number(data[k]);
+    const data = new FormData(e.currentTarget);
     try {
       const res = await fetch("/api/scans", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(data),
+        body: data,
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Could not analyze listing");
@@ -154,14 +145,15 @@ export function AnalyzeForm() {
           <b className="mt-2">Add screenshots or property photos</b>
           <span className="text-xs mt-1">JPG, PNG, or WebP · 5 MB each</span>
           <input
+            name="images"
             type="file"
             accept="image/jpeg,image/png,image/webp"
             multiple
             className="mt-3 text-sm"
           />
           <span className="text-xs mt-2">
-            Image extraction and reverse-image search require a configured
-            provider; unavailable in demo mode.
+            Images are analyzed transiently on the server and are not stored.
+            Demo mode returns deterministic demonstration results.
           </span>
         </label>
       </section>
