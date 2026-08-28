@@ -96,6 +96,10 @@ export default async function Report({ params }: { params: { id: string } }) {
       </section>
       <section className="card p-7 mt-6 border-2 border-amber-300">
         <h2 className="text-xl font-extrabold">Verification checks</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          OCR evidence and reverse-image matches are investigative leads only;
+          neither proves that a listing is fraudulent.
+        </p>
         <ul className="mt-4 space-y-3">
           {r.checks.map((c) => (
             <li
