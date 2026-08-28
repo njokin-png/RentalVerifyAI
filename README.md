@@ -74,8 +74,16 @@ Conversation text is not retained for an ordinary scan. It is stored only when t
 
 ## Demo behavior
 
-Demo providers perform basic address validation, seeded ZIP-prefix rent estimates, deterministic text analysis, contact consistency checks, and a small duplicate-listing simulation. Ownership, licensing, live public duplicate search, OCR, reverse-image search, and charging are explicitly marked unavailable where no provider is configured.
+Demo providers perform basic address validation, seeded ZIP-prefix rent estimates, deterministic text analysis, contact consistency checks, and a small duplicate-listing simulation. Ownership, licensing, live public duplicate search, and charging are explicitly marked unavailable where no provider is configured. OCR and reverse-image checks use deterministic demo adapters when live provider credentials are incomplete.
 
 ## Next integrations and limitations
 
-Validate RentCast coverage for target markets and add a second property-data provider before production reliance. Then prioritize OCR/reverse-image verification, live rent-comparable data, corporation/license registries, and a duplicate-listing search partner. Add Redis-backed distributed rate limiting and secure object storage before production uploads. Complete Stripe Checkout/webhooks only after credentials and product IDs are configured. Add email verification, password reset, CSRF hardening, report retention controls, audit logging, and end-to-end/browser tests before production launch.
+Validate RentCast coverage for target markets and add a second property-data provider before production reliance. Then prioritize live rent-comparable data, corporation/license registries, and a duplicate-listing search partner. Add Redis-backed distributed rate limiting and secure object storage before production uploads. Complete Stripe Checkout/webhooks only after credentials and product IDs are configured. Add email verification, password reset, CSRF hardening, report retention controls, audit logging, and end-to-end/browser tests before production launch.
+
+## OCR and reverse-image verification
+
+Image uploads use multipart form data and are validated on both client and server. Each scan accepts at most five JPEG, PNG, or WebP files of up to 5 MB each. Files are processed transiently on the server and are not written to application storage. Only concise normalized checks and justified risk signals enter the existing scan record and printable report.
+
+The provider-neutral image service extracts only rental-useful OCR evidence: addresses, contact names, phone numbers, email addresses, advertised prices, and payment-pressure wording. Reverse-image responses are normalized to bounded HTTPS/HTTP match references. OCR text and possible matches are investigative leads: neither an OCR finding nor an image match alone proves fraud, and a search returning no matches does not verify a listing.
+
+`DEMO_MODE=true`, or incomplete live credentials, selects deterministic demo adapters. For live adapters, configure all three values for the relevant service (`*_PROVIDER`, `*_API_URL`, and `*_API_KEY`). The generic adapters send the image as a server-side multipart `image` field with the key in an `Authorization: Bearer` header and accept normalized JSON (`text`/`fullText`/`extractedText` for OCR; `matches` for reverse image). Provider errors and the bounded `IMAGE_PROVIDER_TIMEOUT_MS` become safe `Unavailable` checks rather than leaking errors or failing the scan. Provider keys must never use a `NEXT_PUBLIC_` prefix.
