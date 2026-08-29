@@ -12,6 +12,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
+    "deploy:check": "tsx scripts/validate-env.ts",
+    "deploy:migrate": "npm run deploy:check && prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
