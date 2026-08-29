@@ -1,6 +1,21 @@
+import React from "react";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
-export function Header() {
+import { getSession } from "@/lib/auth";
+
+function LogoutButton() {
+  return (
+    <form action="/api/auth/logout" method="post">
+      <button className="font-semibold hover:text-teal" type="submit">
+        Log out
+      </button>
+    </form>
+  );
+}
+
+export async function Header() {
+  const session = await getSession();
+
   return (
     <header className="bg-white border-b border-slate-200">
       <div className="container h-18 py-4 flex items-center justify-between">
@@ -18,14 +33,32 @@ export function Header() {
           <Link href="/safety">Safety tips</Link>
           <Link href="/about">How it works</Link>
           <Link href="/pricing">Pricing</Link>
-          <Link href="/login">Log in</Link>
+          {session ? (
+            <>
+              <Link href="/dashboard">Dashboard</Link>
+              <LogoutButton />
+            </>
+          ) : (
+            <Link href="/login">Log in</Link>
+          )}
           <Link className="btn !py-2" href="/analyze">
             CHECK THIS RENTAL
           </Link>
         </nav>
-        <Link href="/analyze" className="md:hidden btn !py-2">
-          Check rental
-        </Link>
+        <div className="md:hidden flex items-center gap-3 text-sm">
+          {session ? (
+            <>
+              <Link className="font-semibold" href="/dashboard">
+                Dashboard
+              </Link>
+              <LogoutButton />
+            </>
+          ) : (
+            <Link className="font-semibold" href="/login">
+              Log in
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );
