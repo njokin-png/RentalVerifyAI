@@ -9,9 +9,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    $transaction: async (callback: (tx: { rentalScan: { create: typeof mocks.create } }) => Promise<void>) =>
-      callback({ rentalScan: { create: mocks.create } }),
     rentalScan: {
+      create: mocks.create,
       findFirst: mocks.findFirst,
       findMany: mocks.findMany,
     },
@@ -77,6 +76,14 @@ describe("scan repository", () => {
         }),
       }),
     );
+  });
+
+  it("propagates persistence failures without retrying or falling back", async () => {
+    const failure = new Error("database unavailable");
+    mocks.create.mockRejectedValue(failure);
+
+    await expect(saveScan(result, "user-1")).rejects.toBe(failure);
+    expect(mocks.create).toHaveBeenCalledTimes(1);
   });
 
   it("does not retain conversation text unless saveReport is enabled", async () => {

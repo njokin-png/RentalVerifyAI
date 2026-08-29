@@ -46,7 +46,9 @@ const scanInclude = {
   report: true,
 } satisfies Prisma.RentalScanInclude;
 
-type PersistedScan = Prisma.RentalScanGetPayload<{ include: typeof scanInclude }>;
+type PersistedScan = Prisma.RentalScanGetPayload<{
+  include: typeof scanInclude;
+}>;
 
 function reconstruct(scan: PersistedScan): ScanResult {
   const advertisedRent = Number(scan.property?.advertisedRent ?? 0);
@@ -101,79 +103,82 @@ function reconstruct(scan: PersistedScan): ScanResult {
     rentDifferencePercent,
     createdAt: scan.createdAt.toISOString(),
     reverseImageAvailable: !scan.checks.some(
-      (check) => check.category === "image" && check.status === CheckStatus.UNAVAILABLE,
+      (check) =>
+        check.category === "image" && check.status === CheckStatus.UNAVAILABLE,
     ),
   };
 }
 
 export async function saveScan(result: ScanResult, userId?: string | null) {
-  const retainConversation = Boolean(result.input.saveReport && result.input.conversation);
-  const riskLevel = riskLevelByClassification[result.classification] ?? RiskLevel.UNABLE_TO_VERIFY;
+  const retainConversation = Boolean(
+    result.input.saveReport && result.input.conversation,
+  );
+  const riskLevel =
+    riskLevelByClassification[result.classification] ??
+    RiskLevel.UNABLE_TO_VERIFY;
 
-  await prisma.$transaction(async (tx) => {
-    await tx.rentalScan.create({
-      data: {
-        id: result.id,
-        userId: userId ?? null,
-        score: result.score,
-        riskLevel,
-        confidence: result.confidence,
-        checksCompleted: result.checksCompleted,
-        checksUnavailable: result.checksUnavailable,
-        verificationGapDeduction: result.verificationGapDeduction,
-        recommendations: result.recommendations,
-        createdAt: new Date(result.createdAt),
-        property: {
-          create: {
-            address: result.input.address,
-            zip: result.input.zip,
-            bedrooms: result.input.bedrooms,
-            bathrooms: result.input.bathrooms,
-            advertisedRent: result.input.advertisedRent,
-            estimatedRent: result.estimatedRent,
-          },
+  await prisma.rentalScan.create({
+    data: {
+      id: result.id,
+      userId: userId ?? null,
+      score: result.score,
+      riskLevel,
+      confidence: result.confidence,
+      checksCompleted: result.checksCompleted,
+      checksUnavailable: result.checksUnavailable,
+      verificationGapDeduction: result.verificationGapDeduction,
+      recommendations: result.recommendations,
+      createdAt: new Date(result.createdAt),
+      property: {
+        create: {
+          address: result.input.address,
+          zip: result.input.zip,
+          bedrooms: result.input.bedrooms,
+          bathrooms: result.input.bathrooms,
+          advertisedRent: result.input.advertisedRent,
+          estimatedRent: result.estimatedRent,
         },
-        listing: {
-          create: {
-            url: result.input.listingUrl,
-            text: result.input.listingText,
-          },
-        },
-        contact: {
-          create: {
-            name: result.input.landlordName,
-            phone: result.input.phone,
-            email: result.input.email,
-            company: result.input.company,
-          },
-        },
-        signals: {
-          create: result.signals.map((signal) => ({
-            code: signal.code,
-            title: signal.title,
-            explanation: signal.explanation,
-            severity: signal.severity,
-            category: signal.category,
-            evidence: signal.evidence,
-            deduction: signal.deduction,
-          })),
-        },
-        checks: {
-          create: result.checks.map((check) => ({
-            name: check.name,
-            status: checkStatusToDb[check.status],
-            detail: check.detail,
-            category: check.category,
-          })),
-        },
-        conversation: retainConversation
-          ? { create: { redactedText: result.input.conversation } }
-          : undefined,
-        report: result.input.saveReport
-          ? { create: { content: result as unknown as Prisma.InputJsonValue } }
-          : undefined,
       },
-    });
+      listing: {
+        create: {
+          url: result.input.listingUrl,
+          text: result.input.listingText,
+        },
+      },
+      contact: {
+        create: {
+          name: result.input.landlordName,
+          phone: result.input.phone,
+          email: result.input.email,
+          company: result.input.company,
+        },
+      },
+      signals: {
+        create: result.signals.map((signal) => ({
+          code: signal.code,
+          title: signal.title,
+          explanation: signal.explanation,
+          severity: signal.severity,
+          category: signal.category,
+          evidence: signal.evidence,
+          deduction: signal.deduction,
+        })),
+      },
+      checks: {
+        create: result.checks.map((check) => ({
+          name: check.name,
+          status: checkStatusToDb[check.status],
+          detail: check.detail,
+          category: check.category,
+        })),
+      },
+      conversation: retainConversation
+        ? { create: { redactedText: result.input.conversation } }
+        : undefined,
+      report: result.input.saveReport
+        ? { create: { content: result as unknown as Prisma.InputJsonValue } }
+        : undefined,
+    },
   });
 }
 
@@ -196,7 +201,10 @@ export type ScanHistoryItem = {
   createdAt: string;
 };
 
-export async function listUserScans(userId: string, limit = 25): Promise<ScanHistoryItem[]> {
+export async function listUserScans(
+  userId: string,
+  limit = 25,
+): Promise<ScanHistoryItem[]> {
   const rows = await prisma.rentalScan.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
