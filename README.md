@@ -26,11 +26,15 @@ npm run db:seed
 npm run dev
 ```
 
-For deployment environments with PostgreSQL, apply committed migrations with:
+For deployment environments with PostgreSQL, validate production configuration
+and apply committed migrations with the migration-only command:
 
 ```bash
-npm run db:migrate
+npm run deploy:migrate
 ```
+
+This runs `prisma migrate deploy`; it never creates a migration, resets data, or
+uses `prisma db push` against production.
 
 Open http://localhost:3000. Public/demo pages work without paid provider credentials. PostgreSQL is required for durable accounts and scan history. With `DEMO_MODE=true`, a database write failure falls back to the transient in-memory store; production mode returns a safe unavailable response rather than pretending the scan was saved.
 
@@ -48,12 +52,87 @@ npm run build      # production build
 npm run db:generate
 npm run db:push    # local schema sync
 npm run db:migrate # deploy committed migrations
+npm run deploy:check   # validate required production configuration
+npm run deploy:migrate # validate, then safely apply committed migrations
 npm run db:seed    # database demonstration scans
 ```
 
 ## Environment variables
 
-Copy `.env.example`. `DATABASE_URL` and a unique 32+ character `AUTH_SECRET` are needed for persistent accounts/history. `NEXT_PUBLIC_APP_URL` configures the app origin. `DEMO_MODE=true` keeps safe local fallbacks active. `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and `REVERSE_IMAGE_API_KEY` are optional integration hooks. AI and secret Stripe keys must never use a `NEXT_PUBLIC_` prefix.
+Copy `.env.example`. Production requires a pooled `DATABASE_URL`, a direct
+`DIRECT_URL`, a unique 32+ character `AUTH_SECRET`, and an HTTPS
+`NEXT_PUBLIC_APP_URL`. The validation command reports variable names and
+requirements only; it never prints their values. `DEMO_MODE=true` keeps safe
+local fallbacks active. Provider variables are optional integration hooks and
+are not read as build prerequisites. API keys must never use a `NEXT_PUBLIC_`
+prefix.
+
+## Deploy to Neon and Vercel
+
+### 1. Create and configure Neon
+
+1. Create a Neon project and production branch in the region closest to the
+   Vercel deployment. Do not reuse the local development database.
+2. In **Neon Console → Connection Details**, select the application database
+   and role. Copy both connection strings:
+   - the **pooled** string (hostname contains `-pooler`) becomes
+     `DATABASE_URL`; append `sslmode=require` if it is not already present;
+   - the **direct** string (hostname does not contain `-pooler`) becomes
+     `DIRECT_URL`; retain `sslmode=require`.
+3. Keep both strings server-side. The Prisma datasource uses the pooled URL for
+   Vercel runtime traffic and the direct URL only for Prisma migration work.
+4. From a trusted workstation or a single CI migration job, export the four
+   required production variables and run `npm ci`, `npm run db:generate`, then
+   `npm run deploy:migrate`. Run migrations once per release, before promoting
+   the Vercel deployment; do not put migrations in a serverless request or run
+   `prisma db push` against production.
+
+### 2. Configure Vercel
+
+1. Import this repository into Vercel as a **Next.js** project. Keep the default
+   install command (`npm install`/`npm ci`) and build command (`npm run build`).
+   Do not replace the build command with the migration command, because parallel
+   preview/production builds must not race on schema changes.
+2. Under **Project Settings → Environment Variables**, add these for
+   **Production** (and use a separate Neon branch and values for Preview):
+   - `DATABASE_URL`: Neon pooled connection string (secret);
+   - `DIRECT_URL`: Neon direct connection string (secret);
+   - `AUTH_SECRET`: unique random value of at least 32 characters (secret;
+     generate with `openssl rand -base64 48` and do not rotate casually because
+     rotation signs users out);
+   - `NEXT_PUBLIC_APP_URL`: the canonical HTTPS Vercel/custom-domain origin;
+   - `DEMO_MODE=false` for durable public behavior.
+3. Add optional providers only when intentionally enabling them. RentCast needs
+   both `PROPERTY_PROVIDER=rentcast` and `RENTCAST_API_KEY`. Live OCR and reverse
+   image integrations each need their complete `*_PROVIDER`, `*_API_URL`, and
+   `*_API_KEY` set. Missing/incomplete optional provider settings retain the
+   existing safe demo/unavailable fallback and do not fail `next build`.
+4. Deploy a preview first, run the migration command against its separate Neon
+   branch if it contains schema changes, and exercise signup, login, scan,
+   scoring, OCR fallback, history, and report access. Then promote the same
+   commit to Production after the production migration succeeds.
+5. Verify `GET https://<deployment>/api/health` returns HTTP 200 with
+   `{"status":"ok","configuration":"valid"}`. It is an uncached liveness and
+   configuration check: it intentionally performs no database/provider call and
+   exposes no connection strings, provider state, or secret values. A production
+   configuration error returns HTTP 503.
+
+### Deployment safety and rollback
+
+- Keep `.env*` files and Vercel/Neon credentials out of Git and logs. Give the
+  application role only the database permissions it needs, restrict Neon access
+  and team membership, and rotate a credential immediately if it is exposed.
+- Review committed SQL before `npm run deploy:migrate`. Prisma migrations should
+  be backward-compatible for rolling Vercel deployments. Back up or branch Neon
+  before destructive changes; application rollback means redeploying the prior
+  Vercel commit, while database rollback requires a separately reviewed forward
+  migration or Neon restore—not `migrate reset`.
+- The health endpoint is deliberately not a database readiness probe. Monitor
+  Neon separately and verify an authenticated persistence flow after deployment.
+- Vercel instances do not share the in-memory rate limiter. Before high-volume
+  public traffic, replace it with a distributed store and add the account and
+  retention hardening listed below; these are known operational follow-ups, not
+  changes hidden in this deployment preparation.
 
 ### Live property data
 

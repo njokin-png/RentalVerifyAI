@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { getAuthSecret } from "@/lib/env";
 
 export const SESSION_COOKIE_NAME = "rv_session";
 export const SESSION_COOKIE_OPTIONS = {
@@ -9,10 +10,6 @@ export const SESSION_COOKIE_OPTIONS = {
   path: "/",
 };
 
-const secret = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "development-secret-change-this-now-32",
-);
-
 export type Session = { userId: string; email: string };
 
 export async function createSession(user: { id: string; email: string }) {
@@ -21,7 +18,7 @@ export async function createSession(user: { id: string; email: string }) {
     .setSubject(user.id)
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(secret);
+    .sign(getAuthSecret());
   cookies().set(SESSION_COOKIE_NAME, token, {
     ...SESSION_COOKIE_OPTIONS,
     maxAge: 604800,
@@ -33,7 +30,7 @@ export async function verifySessionToken(
 ): Promise<Session | null> {
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, getAuthSecret());
     if (!payload.sub || typeof payload.email !== "string") return null;
     return { userId: payload.sub, email: payload.email };
   } catch {
