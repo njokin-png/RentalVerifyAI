@@ -1,10 +1,17 @@
 import Link from "next/link";
 import type { ScanResult } from "@/lib/types";
+import { CheckoutButton } from "@/components/CheckoutButton";
 import { ScoreRing } from "./ScoreRing";
 import { Disclaimer } from "./Disclaimer";
 import { checkStatusLabel } from "@/lib/check-status";
 
-export function ResultsView({ scan }: { scan: ScanResult }) {
+export function ResultsView({
+  scan,
+  reportAccess = false,
+}: {
+  scan: ScanResult;
+  reportAccess?: boolean;
+}) {
   const top = scan.signals
     .slice()
     .sort((a, b) => b.deduction - a.deduction)
@@ -154,9 +161,15 @@ export function ResultsView({ scan }: { scan: ScanResult }) {
           ))}
         </ol>
         <div className="mt-7 flex gap-3">
-          <Link className="btn" href={`/report/${scan.id}`}>
-            View printable report
-          </Link>
+          {reportAccess ? (
+            <Link className="btn" href={`/report/${scan.id}`}>
+              View printable report
+            </Link>
+          ) : (
+            <div className="max-w-xs">
+              <CheckoutButton plan="report" scanId={scan.id} />
+            </div>
+          )}
           <Link className="px-4 py-3 font-bold" href="/analyze">
             Check another rental
           </Link>

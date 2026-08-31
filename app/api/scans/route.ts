@@ -6,6 +6,7 @@ import { scanStore } from "@/lib/store";
 import { getSession } from "@/lib/auth";
 import { saveScan } from "@/services/scans/repository";
 import { validateImageFiles } from "@/services/images/provider";
+import { canCreateScan } from "@/services/payments/entitlements";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "local";
@@ -16,6 +17,16 @@ export async function POST(req: NextRequest) {
     );
 
   try {
+    const session = await getSession();
+    const entitlement = await canCreateScan(session?.userId);
+    if (!entitlement.allowed)
+      return NextResponse.json(
+        {
+          error:
+            "You have used all 3 free scans this month. Upgrade to Pro for unlimited scans.",
+        },
+        { status: 403 },
+      );
     const contentType = req.headers.get("content-type") || "";
     let candidate: unknown;
     let images: File[] = [];
@@ -48,8 +59,6 @@ export async function POST(req: NextRequest) {
       );
 
     const result = await analyzeRental(parsed.data, undefined, images);
-    const session = await getSession();
-
     try {
       await saveScan(result, session?.userId);
     } catch (error) {

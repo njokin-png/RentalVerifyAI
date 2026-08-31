@@ -1,38 +1,43 @@
 import Link from "next/link";
-const plans = [
-  [
-    "FREE",
-    "$0",
-    [
-      "3 basic scans per month",
-      "Listing text analysis",
-      "Scam warning signs",
-      "Basic Trust Score",
-    ],
+import { CheckoutButton } from "@/components/CheckoutButton";
+import { getStripeConfiguration } from "@/lib/env";
+import { PLANS } from "@/lib/plans";
+
+const features = {
+  free: [
+    `${PLANS.free.monthlyScanLimit} basic scans per month`,
+    "Listing text analysis",
+    "Scam warning signs",
+    "Basic Trust Score",
   ],
-  [
-    "RENTAL VERIFY REPORT",
-    "$4.99",
-    [
-      "One full property report",
-      "Full risk analysis",
-      "Communication analysis",
-      "Printable, PDF-ready report",
-    ],
+  report: [
+    "One full property report",
+    "Full risk analysis",
+    "Communication analysis",
+    "Printable, PDF-ready report",
   ],
-  [
-    "PRO",
-    "$9.99/month",
-    [
-      "Unlimited scans",
-      "Saved reports",
-      "Advanced verification",
-      "Communication analysis",
-      "Image uploads",
-    ],
+  pro: [
+    PLANS.pro.monthlyScanLimit === null
+      ? "Unlimited scans"
+      : `${PLANS.pro.monthlyScanLimit} scans per month`,
+    "Saved reports",
+    "Advanced verification",
+    "Communication analysis",
+    "Image uploads",
   ],
-];
-export default function Pricing() {
+};
+
+export default function Pricing({
+  searchParams,
+}: {
+  searchParams: { scanId?: string };
+}) {
+  const configured = Boolean(getStripeConfiguration());
+  const plans = [
+    ["free", PLANS.free],
+    ["report", PLANS.report],
+    ["pro", PLANS.pro],
+  ] as const;
   return (
     <div className="container py-16">
       <div className="text-center">
@@ -41,25 +46,42 @@ export default function Pricing() {
           Choose the level of verification you need
         </h1>
         <p className="text-slate-600 mt-3">
-          Payments remain in demo mode until Stripe is configured.
+          {configured
+            ? "Secure test checkout is provided by Stripe."
+            : "Paid checkout is currently unavailable. Free scans remain available."}
         </p>
       </div>
       <div className="grid md:grid-cols-3 gap-6 mt-12">
-        {plans.map(([name, price, features], i) => (
+        {plans.map(([key, plan], i) => (
           <div
             className={`card p-7 ${i === 1 ? "border-2 border-teal" : ""}`}
-            key={name as string}
+            key={key}
           >
-            <p className="eyebrow">{name as string}</p>
-            <p className="text-3xl font-extrabold mt-3">{price as string}</p>
+            <p className="eyebrow">{plan.name}</p>
+            <p className="text-3xl font-extrabold mt-3">{plan.price}</p>
             <ul className="mt-6 space-y-3 text-sm">
-              {(features as string[]).map((f) => (
+              {features[key].map((f) => (
                 <li key={f}>✓ {f}</li>
               ))}
             </ul>
-            <Link href="/analyze" className="btn w-full mt-8">
-              {i ? "Choose plan" : "Start free"}
-            </Link>
+            {key === "free" ? (
+              <Link href="/analyze" className="btn w-full mt-8">
+                Start free
+              </Link>
+            ) : (
+              <CheckoutButton
+                plan={key}
+                scanId={key === "report" ? searchParams.scanId : undefined}
+                disabled={
+                  !configured || (key === "report" && !searchParams.scanId)
+                }
+              />
+            )}
+            {key === "report" && !searchParams.scanId && (
+              <p className="text-xs text-slate-500 mt-2">
+                Run or open a scan to purchase its report.
+              </p>
+            )}
           </div>
         ))}
       </div>

@@ -32,6 +32,7 @@ model User {
   name          String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  stripeCustomerId String?     @unique
   scans         RentalScan[]
   subscriptions Subscription[]
   payments      Payment[]
@@ -156,7 +157,8 @@ model Subscription {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan             String
   status           String
-  providerId       String?
+  providerId       String?  @unique
+  checkoutSessionId String? @unique
   currentPeriodEnd DateTime?
   createdAt        DateTime @default(now())
 }
@@ -168,6 +170,14 @@ model Payment {
   amount     Int
   currency   String   @default("usd")
   status     String
-  providerId String?
+  providerId String? @unique
+  checkoutSessionId String? @unique
+  reportScanId String?
   createdAt  DateTime @default(now())
+}
+
+model StripeEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
 }
