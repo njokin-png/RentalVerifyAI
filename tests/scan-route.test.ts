@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   getSession: vi.fn(),
   saveScan: vi.fn(),
   set: vi.fn(),
+  canCreateScan: vi.fn(),
 }));
 
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: () => true }));
@@ -15,6 +16,9 @@ vi.mock("@/services/scoring/analyze", () => ({
 }));
 vi.mock("@/lib/auth", () => ({ getSession: mocks.getSession }));
 vi.mock("@/services/scans/repository", () => ({ saveScan: mocks.saveScan }));
+vi.mock("@/services/payments/entitlements", () => ({
+  canCreateScan: mocks.canCreateScan,
+}));
 vi.mock("@/lib/store", () => ({ scanStore: { set: mocks.set } }));
 
 import { POST } from "@/app/api/scans/route";
@@ -51,6 +55,7 @@ beforeEach(() => {
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   mocks.analyzeRental.mockResolvedValue(result);
   mocks.getSession.mockResolvedValue({ userId: "user-1" });
+  mocks.canCreateScan.mockResolvedValue({ allowed: true, remaining: 2 });
   mocks.saveScan.mockRejectedValue(new Error("database unavailable"));
   delete process.env.DEMO_MODE;
 });

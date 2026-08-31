@@ -3,6 +3,37 @@ export type Environment = Record<string, string | undefined>;
 export type ProductionEnvironmentCheck =
   { ok: true } | { ok: false; errors: string[] };
 
+export type StripeConfiguration = {
+  secretKey: string;
+  webhookSecret: string;
+  reportPriceId: string;
+  proPriceId: string;
+};
+
+/** Paid features are optional, but only complete Stripe test configuration is usable. */
+export function getStripeConfiguration(
+  env: Environment = process.env,
+): StripeConfiguration | null {
+  const values = {
+    secretKey: env.STRIPE_SECRET_KEY,
+    webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    reportPriceId: env.STRIPE_REPORT_PRICE_ID,
+    proPriceId: env.STRIPE_PRO_PRICE_ID,
+  };
+  if (Object.values(values).some((value) => !value)) return null;
+  if (
+    !values.secretKey!.startsWith("sk_test_") ||
+    !values.webhookSecret!.startsWith("whsec_")
+  )
+    return null;
+  if (
+    !values.reportPriceId!.startsWith("price_") ||
+    !values.proPriceId!.startsWith("price_")
+  )
+    return null;
+  return values as StripeConfiguration;
+}
+
 function parsePostgresUrl(name: string, value: string | undefined) {
   if (!value) return { error: `${name} is required.` };
   try {

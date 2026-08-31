@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { scanStore } from "@/lib/store";
 import { getDemoScan } from "@/lib/demo";
 import { getSession } from "@/lib/auth";
-import { getScan } from "@/services/scans/repository";
+import { getOwnedScan } from "@/services/scans/repository";
+import { canAccessPaidReport } from "@/services/payments/entitlements";
 import { reportData } from "@/services/reports/generator";
 import { Disclaimer } from "@/components/Disclaimer";
 import { PrintButton } from "@/components/PrintButton";
@@ -10,13 +11,22 @@ export default async function Report({ params }: { params: { id: string } }) {
   const session = await getSession();
   let scan = scanStore.get(params.id) || getDemoScan(params.id);
   if (!scan) {
+    if (!session)
+      redirect(`/login?next=${encodeURIComponent(`/report/${params.id}`)}`);
     try {
-      scan = (await getScan(params.id, session?.userId)) ?? undefined;
+      scan = (await getOwnedScan(params.id, session.userId)) ?? undefined;
     } catch {
       scan = undefined;
     }
   }
   if (!scan) notFound();
+  if (
+    !scanStore.has(params.id) &&
+    !getDemoScan(params.id) &&
+    session &&
+    !(await canAccessPaidReport(session.userId, params.id))
+  )
+    redirect(`/pricing?scanId=${encodeURIComponent(params.id)}`);
   const r = reportData(scan);
   return (
     <div className="container max-w-4xl py-12">

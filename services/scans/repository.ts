@@ -193,6 +193,14 @@ export async function getScan(id: string, userId?: string | null) {
   return scan ? reconstruct(scan) : null;
 }
 
+export async function getOwnedScan(id: string, userId: string) {
+  const scan = await prisma.rentalScan.findFirst({
+    where: { id, userId },
+    include: scanInclude,
+  });
+  return scan ? reconstruct(scan) : null;
+}
+
 export type ScanHistoryItem = {
   id: string;
   address: string;

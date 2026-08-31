@@ -1,3 +1,5 @@
+import { PLANS } from "@/lib/plans";
+
 export default function Account() {
   return (
     <div className="container max-w-2xl py-12">
@@ -10,7 +12,7 @@ export default function Account() {
         </label>
         <div>
           <span className="label">Plan</span>
-          <p>Free · 3 basic scans per month</p>
+          <p>Free · {PLANS.free.monthlyScanLimit} basic scans per month</p>
         </div>
         <div>
           <span className="label">Conversation retention</span>

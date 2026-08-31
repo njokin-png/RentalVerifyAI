@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getAuthSecret, validateProductionEnvironment } from "@/lib/env";
+import {
+  getAuthSecret,
+  getStripeConfiguration,
+  validateProductionEnvironment,
+} from "@/lib/env";
 
 const valid = {
   NODE_ENV: "production",
@@ -37,5 +41,27 @@ describe("production environment", () => {
     expect(() => getAuthSecret({ NODE_ENV: "production" })).toThrow(
       "AUTH_SECRET is not securely configured",
     );
+  });
+
+  it("accepts only complete test-mode Stripe configuration", () => {
+    const stripe = {
+      STRIPE_WEBHOOK_SECRET: "whsec_x",
+      STRIPE_REPORT_PRICE_ID: "price_report",
+      STRIPE_PRO_PRICE_ID: "price_pro",
+    };
+    expect(
+      getStripeConfiguration({
+        ...stripe,
+        STRIPE_SECRET_KEY: "sk_live_forbidden",
+      }),
+    ).toBeNull();
+    expect(
+      getStripeConfiguration({ ...stripe, STRIPE_SECRET_KEY: "sk_test_safe" }),
+    ).toEqual({
+      secretKey: "sk_test_safe",
+      webhookSecret: "whsec_x",
+      reportPriceId: "price_report",
+      proPriceId: "price_pro",
+    });
   });
 });
