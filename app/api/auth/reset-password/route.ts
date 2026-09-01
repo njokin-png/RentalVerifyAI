@@ -2,7 +2,7 @@ import { AccountTokenType } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { useAccountToken } from "@/lib/account-tokens";
+import { consumeAccountToken } from "@/lib/account-tokens";
 
 const resetSchema = z.object({
   token: z.string().min(20).max(512),
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const passwordHash = await hash(parsed.data.password, 12);
-    const changed = await useAccountToken(
+    const changed = await consumeAccountToken(
       parsed.data.token,
       AccountTokenType.PASSWORD_RESET,
       async (tx, userId) => {
