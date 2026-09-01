@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AuthForm } from "@/components/AuthForm";
+
 export default function Login() {
   return (
     <div className="container max-w-md py-16">
@@ -8,6 +9,11 @@ export default function Login() {
         Open saved rental investigations.
       </p>
       <AuthForm mode="login" />
+      <p className="text-center mt-4 text-sm">
+        <Link className="text-teal font-bold" href="/forgot-password">
+          Forgot password?
+        </Link>
+      </p>
       <p className="text-center mt-5 text-sm">
         New here?{" "}
         <Link className="text-teal font-bold" href="/signup">
