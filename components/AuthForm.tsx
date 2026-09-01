@@ -1,11 +1,14 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [error, setError] = useState("");
   const router = useRouter();
+
   async function go(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError("");
     const data = Object.fromEntries(new FormData(e.currentTarget));
     const r = await fetch(`/api/auth/${mode}`, {
       method: "POST",
@@ -14,9 +17,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     });
     const j = await r.json();
     if (!r.ok) return setError(j.error);
-    router.push("/dashboard");
+    router.push(mode === "signup" ? "/check-email" : "/dashboard");
     router.refresh();
   }
+
   return (
     <form onSubmit={go} className="card p-7 space-y-5">
       {mode === "signup" && (
