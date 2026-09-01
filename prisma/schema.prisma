@@ -25,17 +25,38 @@ enum CheckStatus {
   MISMATCH
 }
 
+enum AccountTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  passwordHash  String
-  name          String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  stripeCustomerId String?     @unique
-  scans         RentalScan[]
-  subscriptions Subscription[]
-  payments      Payment[]
+  id                String         @id @default(cuid())
+  email             String         @unique
+  passwordHash      String
+  name              String?
+  emailVerifiedAt   DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  stripeCustomerId  String?        @unique
+  scans             RentalScan[]
+  subscriptions     Subscription[]
+  payments          Payment[]
+  accountTokens     AccountToken[]
+}
+
+model AccountToken {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String           @unique
+  type      AccountTokenType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, type])
+  @@index([expiresAt])
 }
 
 model RentalScan {
@@ -152,28 +173,28 @@ model Report {
 }
 
 model Subscription {
-  id               String   @id @default(cuid())
-  userId           String
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan             String
-  status           String
-  providerId       String?  @unique
-  checkoutSessionId String? @unique
-  currentPeriodEnd DateTime?
-  createdAt        DateTime @default(now())
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              String
+  status            String
+  providerId        String?  @unique
+  checkoutSessionId String?  @unique
+  currentPeriodEnd  DateTime?
+  createdAt         DateTime @default(now())
 }
 
 model Payment {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount     Int
-  currency   String   @default("usd")
-  status     String
-  providerId String? @unique
-  checkoutSessionId String? @unique
-  reportScanId String?
-  createdAt  DateTime @default(now())
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount            Int
+  currency          String   @default("usd")
+  status            String
+  providerId        String?  @unique
+  checkoutSessionId String?  @unique
+  reportScanId      String?
+  createdAt         DateTime @default(now())
 }
 
 model StripeEvent {
