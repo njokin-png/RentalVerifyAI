@@ -37,7 +37,7 @@ export async function createAccountToken(
   return rawToken;
 }
 
-export async function useAccountToken<T>(
+export async function consumeAccountToken<T>(
   rawToken: string,
   type: AccountTokenType,
   apply: (tx: Prisma.TransactionClient, userId: string) => Promise<T>,
