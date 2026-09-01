@@ -1,11 +1,11 @@
 import { AccountTokenType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import { useAccountToken } from "@/lib/account-tokens";
+import { consumeAccountToken } from "@/lib/account-tokens";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token") || "";
   try {
-    const verified = await useAccountToken(
+    const verified = await consumeAccountToken(
       token,
       AccountTokenType.EMAIL_VERIFICATION,
       async (tx, userId) => {
