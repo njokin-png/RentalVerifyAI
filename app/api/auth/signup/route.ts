@@ -4,6 +4,8 @@ import { credentialsSchema } from "@/lib/validation";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { sendVerificationEmail } from "@/lib/account-email";
+
 export async function POST(req: NextRequest) {
   if (
     !rateLimit(
@@ -31,14 +33,18 @@ export async function POST(req: NextRequest) {
       },
     });
     await createSession(user);
-    return NextResponse.json({ ok: true });
- } catch (error) {
-  console.error("Signup error:", error);
-  return NextResponse.json(
-    {
-      error: "Unable to create account. The email may already be registered.",
-    },
-    { status: 400 },
-  );
-}
+    try {
+      await sendVerificationEmail(user);
+    } catch {
+      // Email delivery is optional and must not invalidate a successful signup.
+    }
+    return NextResponse.json({ ok: true, verificationPending: true });
+  } catch {
+    return NextResponse.json(
+      {
+        error: "Unable to create account. The email may already be registered.",
+      },
+      { status: 400 },
+    );
+  }
 }

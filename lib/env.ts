@@ -1,13 +1,21 @@
 export type Environment = Record<string, string | undefined>;
 
 export type ProductionEnvironmentCheck =
-  { ok: true } | { ok: false; errors: string[] };
+  | { ok: true }
+  | { ok: false; errors: string[] };
 
 export type StripeConfiguration = {
   secretKey: string;
   webhookSecret: string;
   reportPriceId: string;
   proPriceId: string;
+};
+
+export type EmailConfiguration = {
+  provider: string;
+  apiUrl: string;
+  apiKey: string;
+  from: string;
 };
 
 /** Paid features are optional, but only complete Stripe test configuration is usable. */
@@ -32,6 +40,24 @@ export function getStripeConfiguration(
   )
     return null;
   return values as StripeConfiguration;
+}
+
+/** Email delivery is optional. Incomplete or non-HTTPS configuration disables it safely. */
+export function getEmailConfiguration(
+  env: Environment = process.env,
+): EmailConfiguration | null {
+  const provider = env.EMAIL_PROVIDER?.trim();
+  const apiUrl = env.EMAIL_API_URL?.trim();
+  const apiKey = env.EMAIL_API_KEY?.trim();
+  const from = env.EMAIL_FROM?.trim();
+  if (!provider || !apiUrl || !apiKey || !from) return null;
+  try {
+    const url = new URL(apiUrl);
+    if (url.protocol !== "https:") return null;
+  } catch {
+    return null;
+  }
+  return { provider, apiUrl, apiKey, from };
 }
 
 function parsePostgresUrl(name: string, value: string | undefined) {
