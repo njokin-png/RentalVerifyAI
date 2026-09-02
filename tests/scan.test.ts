@@ -1,6 +1,17 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect } from "vitest";
 import { analyzeRental } from "@/services/scoring/analyze";
 describe("rental scan creation", () => {
+  const originalDemoMode = process.env.DEMO_MODE;
+
+  beforeEach(() => {
+    process.env.DEMO_MODE = "true";
+  });
+
+  afterEach(() => {
+    if (originalDemoMode === undefined) delete process.env.DEMO_MODE;
+    else process.env.DEMO_MODE = originalDemoMode;
+  });
+
   it("creates a deterministic, explainable scan", async () => {
     const r = await analyzeRental(
       {

@@ -3,7 +3,7 @@ import { analyzeText } from "@/services/listing/analyzer";
 import { getPropertyProvider } from "@/services/property/factory";
 import { propertyChecks } from "@/services/property/checks";
 import { DemoContactProvider } from "@/services/contact/provider";
-import { DemoRentProvider, evaluateRent } from "@/services/rent/provider";
+import { evaluateRent, getRentProvider } from "@/services/rent/provider";
 import { DemoDuplicateProvider } from "@/services/duplicates/provider";
 import { calculateScore } from "./engine";
 import { analyzeImages } from "@/services/images/analyze";
@@ -28,7 +28,7 @@ export async function analyzeRental(
   signals.push(...contact.signals);
   const duplicates = await new DemoDuplicateProvider().search(input);
   signals.push(...duplicates.signals);
-  const estimated = await new DemoRentProvider().estimate(input);
+  const estimated = await getRentProvider().estimate(input);
   const rent = evaluateRent(input.advertisedRent, estimated);
   if (rent.signal) signals.push(rent.signal);
 
@@ -64,7 +64,8 @@ export async function analyzeRental(
       "Avoid irreversible payment methods.",
       "Compare the listing on multiple established websites.",
     ],
-    estimatedRent: estimated || undefined,
+    estimatedRent:
+      estimated.status === "available" ? estimated.monthly : undefined,
     rentDifferencePercent: rent.difference,
     createdAt: new Date().toISOString(),
     reverseImageAvailable: !imageAnalysis.checks.some(
