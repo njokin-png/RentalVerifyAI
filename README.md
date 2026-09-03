@@ -9,7 +9,7 @@ A runnable MVP for explainable rental-listing risk assessment. It combines deter
 - **Services:** provider-neutral adapters under `services/property`, `listing`, `contact`, `images`, `ai`, `rent`, `duplicates`, `payments`, `reports`, `scans`, and `scoring`.
 - **Scoring:** deterministic deductions and classification thresholds live in `services/scoring/config.ts`; each signal includes evidence and an explanation.
 - **Data/auth:** PostgreSQL models through Prisma, bcrypt password hashes, signed HttpOnly session cookies, persisted scan history, and middleware-protected account pages.
-- **Security:** Zod validation, text sanitization, bounded fields, basic in-memory rate-limit adapter, generic server errors, privacy notice, and image allow-list/size configuration.
+- **Security:** Zod validation, text sanitization, bounded fields, same-origin enforcement for unsafe browser API requests, basic in-memory rate-limit adapter, generic server errors, privacy notice, and image allow-list/size configuration.
 
 ## Quick start
 
@@ -181,7 +181,7 @@ Demo providers perform basic address validation, seeded ZIP-prefix rent estimate
 
 ## Next integrations and limitations
 
-Validate RentCast coverage for target markets and add a second property-data provider before production reliance. Then prioritize live rent-comparable data, corporation/license registries, and a duplicate-listing search partner. Add Redis-backed distributed rate limiting and secure object storage before production uploads. Keep Stripe in test mode pending a separate production security review. Add email verification, password reset, CSRF hardening, report retention controls, audit logging, and end-to-end/browser tests before production launch.
+Validate RentCast coverage for target markets and add a second property-data provider before production reliance. Then prioritize live rent-comparable data, corporation/license registries, and a duplicate-listing search partner. Add Redis-backed distributed rate limiting and secure object storage before production uploads. Keep Stripe in test mode pending a separate production security review. Add report retention controls, audit logging, and end-to-end/browser tests before production launch.
 
 ## OCR and reverse-image verification
 
