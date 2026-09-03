@@ -36,12 +36,22 @@ Repository code cannot safely supply deployment secrets. Before public launch, c
 - Email delivery has complete server-side `EMAIL_PROVIDER`, `EMAIL_API_URL`, `EMAIL_API_KEY`, and `EMAIL_FROM` configuration before relying on verification/reset email delivery.
 - Stripe remains test-mode-only until a dedicated live-payments review.
 
+## Browser request origin protection
+
+All unsafe browser-facing `/api/*` requests are rejected unless their `Origin`
+header exactly matches the origin of the URL being requested. This covers both
+the canonical production domain and isolated Vercel preview domains. Safe
+`GET`, `HEAD`, and `OPTIONS` requests remain available without an origin header.
+
+The Stripe webhook is intentionally exempt from browser-origin enforcement
+because it is a server-to-server callback authenticated by Stripe's signature
+over the raw request body. Do not exempt unsigned browser endpoints.
+
 ## Known hardening follow-ups
 
 Track these as separate, reviewable issues rather than bundling them into deployment fixes:
 
 - distributed rate limiting for multi-instance deployments;
-- CSRF hardening for state-changing browser requests;
 - session revocation after password reset and other sensitive account changes;
 - audit logging for security-sensitive account/payment events;
 - explicit report/data retention controls;
