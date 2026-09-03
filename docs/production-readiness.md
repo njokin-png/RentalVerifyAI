@@ -47,12 +47,20 @@ The Stripe webhook is intentionally exempt from browser-origin enforcement
 because it is a server-to-server callback authenticated by Stripe's signature
 over the raw request body. Do not exempt unsigned browser endpoints.
 
+## Session revocation
+
+Signed session tokens carry the user's current session version. Authenticated
+data access compares that signed value with the database, and fails closed when
+it cannot be validated. A successful password reset increments the database
+version atomically with the password change and clears the current browser
+cookie, invalidating every previously issued session. The migration that adds
+the version also causes legacy unversioned tokens to be rejected once.
+
 ## Known hardening follow-ups
 
 Track these as separate, reviewable issues rather than bundling them into deployment fixes:
 
 - distributed rate limiting for multi-instance deployments;
-- session revocation after password reset and other sensitive account changes;
 - audit logging for security-sensitive account/payment events;
 - explicit report/data retention controls;
 - end-to-end browser coverage of the critical user journey;

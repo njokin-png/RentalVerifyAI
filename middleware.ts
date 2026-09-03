@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
+import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session-token";
 import { isSameOriginRequest } from "@/lib/csrf";
 
 export async function middleware(req: NextRequest) {

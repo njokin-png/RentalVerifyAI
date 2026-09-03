@@ -1,6 +1,11 @@
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
 import { PLANS } from "@/lib/plans";
 
-export default function Account() {
+export default async function Account() {
+  const session = await getSession();
+  if (!session) redirect("/login?next=%2Faccount");
+
   return (
     <div className="container max-w-2xl py-12">
       <p className="eyebrow">ACCOUNT</p>
@@ -8,7 +13,7 @@ export default function Account() {
       <div className="card p-6 mt-7 space-y-5">
         <label>
           <span className="label">Email address</span>
-          <input className="input" value="demo@rentalverify.local" readOnly />
+          <input className="input" value={session.email} readOnly />
         </label>
         <div>
           <span className="label">Plan</span>

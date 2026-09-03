@@ -3,6 +3,7 @@ import { hash } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { consumeAccountToken } from "@/lib/account-tokens";
+import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS } from "@/lib/auth";
 
 const resetSchema = z.object({
   token: z.string().min(20).max(512),
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
       async (tx, userId) => {
         await tx.user.update({
           where: { id: userId },
-          data: { passwordHash },
+          data: { passwordHash, sessionVersion: { increment: 1 } },
         });
         return true;
       },
@@ -37,7 +38,13 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    return NextResponse.json({ ok: true });
+    const response = NextResponse.json({ ok: true });
+    response.cookies.set(SESSION_COOKIE_NAME, "", {
+      ...SESSION_COOKIE_OPTIONS,
+      expires: new Date(0),
+      maxAge: 0,
+    });
+    return response;
   } catch {
     return NextResponse.json(
       { error: "Password reset is temporarily unavailable." },
