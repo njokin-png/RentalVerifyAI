@@ -39,7 +39,10 @@ describe("session handling", () => {
   );
 
   it("allows a protected route with a valid session", async () => {
-    const token = await new SignJWT({ email: "user@example.com" })
+    const token = await new SignJWT({
+      email: "user@example.com",
+      sessionVersion: 0,
+    })
       .setProtectedHeader({ alg: "HS256" })
       .setSubject("user-1")
       .setExpirationTime("5m")

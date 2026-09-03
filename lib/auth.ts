@@ -1,19 +1,28 @@
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { getAuthSecret } from "@/lib/env";
+import { prisma } from "@/lib/prisma";
+import {
+  SESSION_COOKIE_NAME,
+  SESSION_COOKIE_OPTIONS,
+  verifySessionToken,
+} from "@/lib/session-token";
 
-export const SESSION_COOKIE_NAME = "rv_session";
-export const SESSION_COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-};
+export {
+  SESSION_COOKIE_NAME,
+  SESSION_COOKIE_OPTIONS,
+  verifySessionToken,
+} from "@/lib/session-token";
 
-export type Session = { userId: string; email: string };
-
-export async function createSession(user: { id: string; email: string }) {
-  const token = await new SignJWT({ email: user.email })
+export async function createSession(user: {
+  id: string;
+  email: string;
+  sessionVersion: number;
+}) {
+  const token = await new SignJWT({
+    email: user.email,
+    sessionVersion: user.sessionVersion,
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(user.id)
     .setIssuedAt()
@@ -25,19 +34,22 @@ export async function createSession(user: { id: string; email: string }) {
   });
 }
 
-export async function verifySessionToken(
-  token?: string,
-): Promise<Session | null> {
-  if (!token) return null;
+export async function validateSessionToken(token?: string) {
+  const session = await verifySessionToken(token);
+  if (!session) return null;
+
   try {
-    const { payload } = await jwtVerify(token, getAuthSecret());
-    if (!payload.sub || typeof payload.email !== "string") return null;
-    return { userId: payload.sub, email: payload.email };
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { email: true, sessionVersion: true },
+    });
+    if (!user || user.sessionVersion !== session.sessionVersion) return null;
+    return { ...session, email: user.email };
   } catch {
     return null;
   }
 }
 
 export async function getSession() {
-  return verifySessionToken(cookies().get(SESSION_COOKIE_NAME)?.value);
+  return validateSessionToken(cookies().get(SESSION_COOKIE_NAME)?.value);
 }
