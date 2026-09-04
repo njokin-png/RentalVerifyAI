@@ -10,7 +10,7 @@ import { canCreateScan } from "@/services/payments/entitlements";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "local";
-  if (!rateLimit(`scan:${ip}`, 10))
+  if (!(await rateLimit(`scan:${ip}`, 10)))
     return NextResponse.json(
       { error: "Too many requests. Please wait and try again." },
       { status: 429 },

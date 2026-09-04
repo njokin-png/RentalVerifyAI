@@ -12,13 +12,15 @@ const generic = {
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "local";
-  if (!rateLimit(`password-reset:${ip}`, 3, 15 * 60_000)) {
+  if (!(await rateLimit(`password-reset:${ip}`, 3, 15 * 60_000))) {
     return NextResponse.json(generic);
   }
   const parsed = requestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json(generic);
   try {
-    const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+    const user = await prisma.user.findUnique({
+      where: { email: parsed.data.email },
+    });
     if (user) await sendPasswordResetEmail(user);
   } catch {
     // Keep response indistinguishable for unknown users, provider failures, and DB errors.

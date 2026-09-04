@@ -39,6 +39,7 @@ Repository code cannot safely supply deployment secrets. Before public launch, c
 - `NEXT_PUBLIC_APP_URL` is the canonical HTTPS origin.
 - `DEMO_MODE=false` for durable public behavior.
 - Email delivery has complete server-side `EMAIL_PROVIDER`, `EMAIL_API_URL`, `EMAIL_API_KEY`, and `EMAIL_FROM` configuration before relying on verification/reset email delivery.
+- Shared abuse protection has either the complete `UPSTASH_REDIS_REST_*` pair or complete `KV_REST_API_*` pair. Keep the write-capable token server-side and monitor provider availability.
 - Stripe stays in test mode until the external live-mode checklist is complete.
 
 ## Stripe controlled activation
@@ -80,7 +81,7 @@ the version also causes legacy unversioned tokens to be rejected once.
 
 Track these as separate, reviewable issues rather than bundling them into deployment fixes:
 
-- distributed rate limiting for multi-instance deployments;
+- production configuration and monitoring of the implemented shared rate limiter;
 - durable export and alerting for structured security audit events;
 - a documented automatic expiration schedule for old saved reports;
 - expanded cross-browser and mobile coverage beyond the Chromium critical journey;

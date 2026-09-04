@@ -9,11 +9,11 @@ import { recordSecurityEvent } from "@/lib/security-audit";
 
 export async function POST(req: NextRequest) {
   if (
-    !rateLimit(
+    !(await rateLimit(
       `signup:${req.headers.get("x-forwarded-for") || "local"}`,
       5,
       300000,
-    )
+    ))
   ) {
     recordSecurityEvent({ action: "signup", outcome: "rate_limited" });
     return NextResponse.json(
