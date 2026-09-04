@@ -65,7 +65,17 @@ Track these as separate, reviewable issues rather than bundling them into deploy
 - a documented automatic expiration schedule for old saved reports;
 - end-to-end browser coverage of the critical user journey;
 - email deliverability/domain verification and abuse controls;
-- live-provider reliability/timeout monitoring.
+- external alerting and dashboards for live-provider reliability telemetry.
+
+## Live-provider reliability telemetry
+
+RentCast property and rent requests emit one structured `provider_call` event
+with the provider, operation, outcome, duration, and HTTP status when available.
+Timeouts, network failures, HTTP failures, malformed responses, and successes
+are distinguishable. Events intentionally exclude request URLs, addresses,
+credentials, response bodies, and raw error messages. Configure alerts from
+these events in the deployment platform before depending on a live provider at
+high volume.
 
 ## Merge rule
 
