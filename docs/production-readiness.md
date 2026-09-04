@@ -87,6 +87,15 @@ emails, tokens, cookies, IP addresses, credentials, and request/provider bodies.
 Configure durable log export, access controls, retention, and alerts before
 launch; deployment logs alone are not a permanent audit store.
 
+## Browser security headers
+
+Every route sends a conservative browser-security baseline: MIME sniffing is
+disabled, framing is denied, referrer detail is limited across origins, camera,
+microphone, and geolocation access are disabled, and HTTPS is remembered for one
+year. A full Content Security Policy remains a separate change because Next.js
+script nonces and every external integration must be validated before enforcing
+one in production.
+
 ## Merge rule
 
 Do not merge a production-hardening pull request only because it deploys. Merge after code review plus green lint, tests, build, and relevant deployment checks.
