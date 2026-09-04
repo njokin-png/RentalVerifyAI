@@ -17,6 +17,7 @@ describe("authenticated navigation", () => {
 
     expect(html).toContain('href="/login"');
     expect(html).toContain("Log in");
+    expect(html).toContain('aria-label="Mobile navigation"');
     expect(html).not.toContain("Log out");
   });
 
@@ -29,6 +30,8 @@ describe("authenticated navigation", () => {
     const html = renderToStaticMarkup(await Header());
 
     expect(html).toContain('href="/dashboard"');
+    expect(html).toContain('href="/history"');
+    expect(html).toContain('href="/account"');
     expect(html).toContain("Dashboard");
     expect(html).toContain('action="/api/auth/logout"');
     expect(html).toContain('method="post"');

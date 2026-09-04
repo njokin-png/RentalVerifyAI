@@ -117,12 +117,14 @@ year. A full Content Security Policy remains a separate change because Next.js
 script nonces and every external integration must be validated before enforcing
 one in production.
 
-## Critical browser journey
+## Browser journeys
 
-CI runs a Chromium journey against a disposable PostgreSQL service. It covers
+CI runs a desktop Chromium journey against a disposable PostgreSQL service. It covers
 account creation, the post-signup verification notice, login, authenticated
 rental analysis, saved-history access, reopening a result, and permanent
-investigation deletion. The test never uses production data or credentials.
+investigation deletion. A separate phone-sized Chromium journey verifies the
+complete public navigation and guards against horizontal overflow. The tests
+never use production data or credentials.
 
 ## Merge rule
 
