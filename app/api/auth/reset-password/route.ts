@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { consumeAccountToken } from "@/lib/account-tokens";
 import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS } from "@/lib/auth";
+import { recordSecurityEvent } from "@/lib/security-audit";
 
 const resetSchema = z.object({
   token: z.string().min(20).max(512),
@@ -13,6 +14,7 @@ const resetSchema = z.object({
 export async function POST(req: NextRequest) {
   const parsed = resetSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
+    recordSecurityEvent({ action: "password_reset", outcome: "rejected" });
     return NextResponse.json(
       { error: "The reset link or password is invalid." },
       { status: 400 },
@@ -33,11 +35,13 @@ export async function POST(req: NextRequest) {
       },
     );
     if (!changed) {
+      recordSecurityEvent({ action: "password_reset", outcome: "rejected" });
       return NextResponse.json(
         { error: "This reset link is invalid or has expired." },
         { status: 400 },
       );
     }
+    recordSecurityEvent({ action: "password_reset", outcome: "success" });
     const response = NextResponse.json({ ok: true });
     response.cookies.set(SESSION_COOKIE_NAME, "", {
       ...SESSION_COOKIE_OPTIONS,
@@ -46,6 +50,7 @@ export async function POST(req: NextRequest) {
     });
     return response;
   } catch {
+    recordSecurityEvent({ action: "password_reset", outcome: "error" });
     return NextResponse.json(
       { error: "Password reset is temporarily unavailable." },
       { status: 503 },

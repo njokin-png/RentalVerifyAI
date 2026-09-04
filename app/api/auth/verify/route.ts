@@ -1,6 +1,7 @@
 import { AccountTokenType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { consumeAccountToken } from "@/lib/account-tokens";
+import { recordSecurityEvent } from "@/lib/security-audit";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token") || "";
@@ -16,10 +17,17 @@ export async function GET(req: NextRequest) {
         return true;
       },
     );
+    recordSecurityEvent({
+      action: "email_verification",
+      outcome: verified ? "success" : "rejected",
+    });
     return NextResponse.redirect(
       new URL(`/verify?status=${verified ? "success" : "invalid"}`, req.url),
     );
   } catch {
-    return NextResponse.redirect(new URL("/verify?status=unavailable", req.url));
+    recordSecurityEvent({ action: "email_verification", outcome: "error" });
+    return NextResponse.redirect(
+      new URL("/verify?status=unavailable", req.url),
+    );
   }
 }

@@ -61,7 +61,7 @@ the version also causes legacy unversioned tokens to be rejected once.
 Track these as separate, reviewable issues rather than bundling them into deployment fixes:
 
 - distributed rate limiting for multi-instance deployments;
-- audit logging for security-sensitive account/payment events;
+- durable export and alerting for structured security audit events;
 - a documented automatic expiration schedule for old saved reports;
 - end-to-end browser coverage of the critical user journey;
 - email deliverability/domain verification and abuse controls;
@@ -76,6 +76,16 @@ are distinguishable. Events intentionally exclude request URLs, addresses,
 credentials, response bodies, and raw error messages. Configure alerts from
 these events in the deployment platform before depending on a live provider at
 high volume.
+
+## Security audit events
+
+Authentication, password-reset, email-verification, and Stripe webhook paths
+emit structured `security_audit` events with a bounded action and outcome.
+Successful account events may include the internal user ID, and verified Stripe
+events may include the signed event type. Audit records exclude passwords,
+emails, tokens, cookies, IP addresses, credentials, and request/provider bodies.
+Configure durable log export, access controls, retention, and alerts before
+launch; deployment logs alone are not a permanent audit store.
 
 ## Merge rule
 
