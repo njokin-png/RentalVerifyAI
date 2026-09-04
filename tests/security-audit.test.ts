@@ -36,4 +36,14 @@ describe("security audit events", () => {
     recordSecurityEvent({ action: "login", outcome: "rejected" });
     expect(info).not.toHaveBeenCalled();
   });
+
+  it("never changes an application outcome if logging fails", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.spyOn(console, "info").mockImplementation(() => {
+      throw new Error("logging unavailable");
+    });
+    expect(() =>
+      recordSecurityEvent({ action: "login", outcome: "success" }),
+    ).not.toThrow();
+  });
 });

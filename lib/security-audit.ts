@@ -22,11 +22,15 @@ export type SecurityAuditEvent = {
  */
 export function recordSecurityEvent(event: SecurityAuditEvent) {
   if (process.env.NODE_ENV === "test") return;
-  console.info(
-    JSON.stringify({
-      event: "security_audit",
-      occurredAt: new Date().toISOString(),
-      ...event,
-    }),
-  );
+  try {
+    console.info(
+      JSON.stringify({
+        event: "security_audit",
+        occurredAt: new Date().toISOString(),
+        ...event,
+      }),
+    );
+  } catch {
+    // Audit transport must never change the protected operation's outcome.
+  }
 }
