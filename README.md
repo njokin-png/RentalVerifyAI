@@ -173,6 +173,8 @@ Live RentCast property and rent calls emit privacy-safe structured reliability e
 
 Security-sensitive account and Stripe webhook paths emit bounded structured audit events. These events record only the action, outcome, timestamp, optional internal user ID, and verified Stripe event type; they exclude credentials and submitted personal data. Production operations should export them to a durable, access-controlled log destination.
 
+All application routes send baseline browser security headers for clickjacking, MIME sniffing, referrer, sensitive browser-feature, and HTTPS downgrade protection. A nonce-based Content Security Policy is intentionally deferred until the application and all external integrations can be exercised under it.
+
 ## Persistent scan history and privacy
 
 Completed scans are persisted through Prisma/PostgreSQL and can be reopened from authenticated dashboard/history pages after server restarts. Authenticated scans are associated with the signed-in user; anonymous scans remain unowned. Persisted lookup rules allow access only to anonymous scans or scans owned by the current authenticated user.
