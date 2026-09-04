@@ -1,10 +1,10 @@
 export type Environment = Record<string, string | undefined>;
 
 export type ProductionEnvironmentCheck =
-  | { ok: true }
-  | { ok: false; errors: string[] };
+  { ok: true } | { ok: false; errors: string[] };
 
 export type StripeConfiguration = {
+  mode: "test" | "live";
   secretKey: string;
   webhookSecret: string;
   reportPriceId: string;
@@ -18,7 +18,7 @@ export type EmailConfiguration = {
   from: string;
 };
 
-/** Paid features are optional, but only complete Stripe test configuration is usable. */
+/** Paid features are optional. Live mode requires an explicit acknowledgement. */
 export function getStripeConfiguration(
   env: Environment = process.env,
 ): StripeConfiguration | null {
@@ -29,9 +29,14 @@ export function getStripeConfiguration(
     proPriceId: env.STRIPE_PRO_PRICE_ID,
   };
   if (Object.values(values).some((value) => !value)) return null;
+  const mode = env.STRIPE_MODE?.trim() || "test";
+  if (mode !== "test" && mode !== "live") return null;
+  if (!values.webhookSecret!.startsWith("whsec_")) return null;
+  if (mode === "test" && !values.secretKey!.startsWith("sk_test_")) return null;
   if (
-    !values.secretKey!.startsWith("sk_test_") ||
-    !values.webhookSecret!.startsWith("whsec_")
+    mode === "live" &&
+    (!values.secretKey!.startsWith("sk_live_") ||
+      env.STRIPE_LIVE_MODE_ACKNOWLEDGED !== "true")
   )
     return null;
   if (
@@ -39,7 +44,7 @@ export function getStripeConfiguration(
     !values.proPriceId!.startsWith("price_")
   )
     return null;
-  return values as StripeConfiguration;
+  return { mode, ...(values as Omit<StripeConfiguration, "mode">) };
 }
 
 /** Email delivery is optional. Incomplete or non-HTTPS configuration disables it safely. */

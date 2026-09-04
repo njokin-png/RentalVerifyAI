@@ -23,7 +23,7 @@ Vercel preview deployment is an additional deployment signal, not a replacement 
 5. Verify `/api/health` returns HTTP 200 and `{ "status": "ok", "configuration": "valid" }`.
 6. Verify `/api/ready` returns HTTP 200 and `{ "status": "ready" }`. A 503 means the application cannot currently reach Neon and must block promotion.
 7. Run an authenticated persistence smoke test: signup, verification, login, scan, saved history/report access.
-8. Exercise Stripe only in test mode until a separate live-payments security review is complete.
+8. Exercise Stripe in test mode; enable live mode only after the controlled activation checklist below is complete.
 9. Promote the verified commit; do not rebuild unrelated changes into the release.
 
 `/api/health` checks process configuration without contacting dependencies.
@@ -39,7 +39,22 @@ Repository code cannot safely supply deployment secrets. Before public launch, c
 - `NEXT_PUBLIC_APP_URL` is the canonical HTTPS origin.
 - `DEMO_MODE=false` for durable public behavior.
 - Email delivery has complete server-side `EMAIL_PROVIDER`, `EMAIL_API_URL`, `EMAIL_API_KEY`, and `EMAIL_FROM` configuration before relying on verification/reset email delivery.
-- Stripe remains test-mode-only until a dedicated live-payments review.
+- Stripe stays in test mode until the external live-mode checklist is complete.
+
+## Stripe controlled activation
+
+The application defaults to test mode and rejects live secret keys. Before live
+activation, verify the $4.99 one-time Report Price and $9.99 recurring Pro Price
+in Stripe, create a separate live webhook endpoint, subscribe it to the documented
+checkout and subscription events, confirm the refund/cancellation and tax policy,
+and run a final test-mode purchase and cancellation.
+
+Only then replace the secret key, webhook secret, and both Price IDs together;
+set `STRIPE_MODE=live` and `STRIPE_LIVE_MODE_ACKNOWLEDGED=true`; redeploy; and run
+one controlled low-value production purchase. Confirm the signed webhook creates
+the correct entitlement before expanding access. Setting the acknowledgement
+back to `false` disables checkout on the next deployment without affecting free
+scans.
 
 ## Browser request origin protection
 

@@ -43,7 +43,7 @@ describe("production environment", () => {
     );
   });
 
-  it("accepts only complete test-mode Stripe configuration", () => {
+  it("defaults to test mode and rejects live keys without explicit activation", () => {
     const stripe = {
       STRIPE_WEBHOOK_SECRET: "whsec_x",
       STRIPE_REPORT_PRICE_ID: "price_report",
@@ -58,7 +58,29 @@ describe("production environment", () => {
     expect(
       getStripeConfiguration({ ...stripe, STRIPE_SECRET_KEY: "sk_test_safe" }),
     ).toEqual({
+      mode: "test",
       secretKey: "sk_test_safe",
+      webhookSecret: "whsec_x",
+      reportPriceId: "price_report",
+      proPriceId: "price_pro",
+    });
+    expect(
+      getStripeConfiguration({
+        ...stripe,
+        STRIPE_MODE: "live",
+        STRIPE_SECRET_KEY: "sk_live_safe",
+      }),
+    ).toBeNull();
+    expect(
+      getStripeConfiguration({
+        ...stripe,
+        STRIPE_MODE: "live",
+        STRIPE_LIVE_MODE_ACKNOWLEDGED: "true",
+        STRIPE_SECRET_KEY: "sk_live_safe",
+      }),
+    ).toEqual({
+      mode: "live",
+      secretKey: "sk_live_safe",
       webhookSecret: "whsec_x",
       reportPriceId: "price_report",
       proPriceId: "price_pro",

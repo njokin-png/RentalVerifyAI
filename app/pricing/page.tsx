@@ -32,7 +32,8 @@ export default function Pricing({
 }: {
   searchParams: { scanId?: string };
 }) {
-  const configured = Boolean(getStripeConfiguration());
+  const stripe = getStripeConfiguration();
+  const configured = Boolean(stripe);
   const plans = [
     ["free", PLANS.free],
     ["report", PLANS.report],
@@ -47,7 +48,9 @@ export default function Pricing({
         </h1>
         <p className="text-slate-600 mt-3">
           {configured
-            ? "Secure test checkout is provided by Stripe."
+            ? stripe?.mode === "live"
+              ? "Secure checkout is provided by Stripe."
+              : "Secure test checkout is provided by Stripe."
             : "Paid checkout is currently unavailable. Free scans remain available."}
         </p>
       </div>
