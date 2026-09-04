@@ -1,7 +1,15 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { getStripeConfiguration } from "@/lib/env";
 import { PLANS } from "@/lib/plans";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description:
+    "Compare free rental checks, one-time Rental Verify Reports, and RentalVerify AI Pro.",
+  alternates: { canonical: "/pricing" },
+};
 
 const features = {
   free: [
