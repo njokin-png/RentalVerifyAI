@@ -1,3 +1,20 @@
+const noIndexRoutes = [
+  "/api/:path*",
+  "/account",
+  "/dashboard/:path*",
+  "/history/:path*",
+  "/results/:path*",
+  "/report/:path*",
+  "/checkout/:path*",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/verify",
+  "/check-email",
+  "/resend-verification",
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: { serverActions: { bodySizeLimit: "5mb" } },
@@ -22,6 +39,10 @@ const nextConfig = {
           },
         ],
       },
+      ...noIndexRoutes.map((source) => ({
+        source,
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      })),
     ];
   },
 };
