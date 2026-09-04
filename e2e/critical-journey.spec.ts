@@ -61,7 +61,9 @@ test("renter can create an account, scan, reopen, and delete an investigation", 
     .fill("The landlord wants payment before a tour.");
   await page.getByRole("button", { name: "CHECK THIS RENTAL" }).click();
   await expect(page).toHaveURL(/\/results\/[^/]+$/);
-  await expect(page.getByText("RENTAL TRUST SCORE")).toBeVisible();
+  await expect(
+    page.getByText("RENTAL TRUST SCORE", { exact: true }),
+  ).toBeVisible();
 
   await page.goto("/history");
   const investigation = page.getByRole("row", { name: new RegExp(address) });
