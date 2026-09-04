@@ -106,4 +106,22 @@ describe("RentCast normalization", () => {
     expect(JSON.stringify(monitor.mock.calls)).not.toContain(input.address);
     expect(JSON.stringify(monitor.mock.calls)).not.toContain("super-secret");
   });
+
+  it("classifies malformed provider payloads", async () => {
+    const monitor = vi.fn();
+    const fetcher = vi.fn(
+      async () => new Response("not-json", { status: 200 }),
+    );
+
+    const result = await new RentCastPropertyProvider(
+      "secret",
+      fetcher,
+      monitor,
+    ).verify(input);
+
+    expect(result.record).toBeUndefined();
+    expect(monitor).toHaveBeenCalledWith(
+      expect.objectContaining({ outcome: "invalid_response", statusCode: 200 }),
+    );
+  });
 });

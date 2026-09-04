@@ -105,4 +105,32 @@ describe("RentCast normalization", () => {
     expect(result.check.detail).toContain("Live estimate");
     expect(result.check.detail).not.toContain("Demo estimate");
   });
+
+  it("classifies a provider timeout without exposing request data", async () => {
+    const monitor = vi.fn();
+    const fetchImpl = vi.fn(
+      (_url: URL | RequestInfo, init?: RequestInit) =>
+        new Promise<Response>((_, reject) => {
+          init?.signal?.addEventListener("abort", () =>
+            reject(new DOMException("aborted", "AbortError")),
+          );
+        }),
+    );
+
+    const result = await new RentCastRentProvider(
+      "secret",
+      fetchImpl as typeof fetch,
+      1,
+      monitor,
+    ).estimate(input);
+
+    expect(result.status).toBe("unavailable");
+    expect(monitor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcome: "timeout",
+        operation: "rent_estimate",
+      }),
+    );
+    expect(JSON.stringify(monitor.mock.calls)).not.toContain(input.address);
+  });
 });
