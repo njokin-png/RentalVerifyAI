@@ -140,6 +140,10 @@ retries idempotent. Do not configure live credentials or live Prices.
    configuration check: it intentionally performs no database/provider call and
    exposes no connection strings, provider state, or secret values. A production
    configuration error returns HTTP 503.
+6. Verify `GET https://<deployment>/api/ready` returns HTTP 200 with
+   `{"status":"ready"}`. This uncached readiness probe performs a bounded
+   database query and returns HTTP 503 with `{"status":"not_ready"}` when Neon
+   is unavailable. It never includes connection details or raw errors.
 
 ### Deployment safety and rollback
 
@@ -151,8 +155,9 @@ retries idempotent. Do not configure live credentials or live Prices.
   before destructive changes; application rollback means redeploying the prior
   Vercel commit, while database rollback requires a separately reviewed forward
   migration or Neon restore—not `migrate reset`.
-- The health endpoint is deliberately not a database readiness probe. Monitor
-  Neon separately and verify an authenticated persistence flow after deployment.
+- Use `/api/health` for process/configuration liveness and `/api/ready` for the
+  database-backed readiness signal. Continue to verify an authenticated
+  persistence flow after deployment.
 - Vercel instances do not share the in-memory rate limiter. Before high-volume
   public traffic, replace it with a distributed store and add the account and
   retention hardening listed below; these are known operational follow-ups, not

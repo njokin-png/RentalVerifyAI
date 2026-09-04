@@ -21,9 +21,14 @@ Vercel preview deployment is an additional deployment signal, not a replacement 
 3. For releases with schema changes, run `npm run deploy:migrate` once from a trusted environment against the intended Neon database before promotion. Never run `prisma db push` against production.
 4. Confirm production environment configuration without exposing secret values.
 5. Verify `/api/health` returns HTTP 200 and `{ "status": "ok", "configuration": "valid" }`.
-6. Run an authenticated persistence smoke test: signup, verification, login, scan, saved history/report access.
-7. Exercise Stripe only in test mode until a separate live-payments security review is complete.
-8. Promote the verified commit; do not rebuild unrelated changes into the release.
+6. Verify `/api/ready` returns HTTP 200 and `{ "status": "ready" }`. A 503 means the application cannot currently reach Neon and must block promotion.
+7. Run an authenticated persistence smoke test: signup, verification, login, scan, saved history/report access.
+8. Exercise Stripe only in test mode until a separate live-payments security review is complete.
+9. Promote the verified commit; do not rebuild unrelated changes into the release.
+
+`/api/health` checks process configuration without contacting dependencies.
+`/api/ready` performs a bounded database query. Both responses are uncached and
+intentionally omit connection details and raw errors.
 
 ## Manual configuration still required
 
