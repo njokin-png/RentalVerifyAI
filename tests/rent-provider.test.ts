@@ -66,10 +66,13 @@ describe("RentCast normalization", () => {
     );
   });
   it("returns unavailable evidence for a provider failure", async () => {
+    const monitor = vi.fn();
     const fetchImpl = vi.fn(async () => new Response(null, { status: 401 }));
     const result = await new RentCastRentProvider(
       "bad-secret",
       fetchImpl as typeof fetch,
+      5000,
+      monitor,
     ).estimate(input);
     expect(result).toEqual({
       status: "unavailable",
@@ -79,6 +82,16 @@ describe("RentCast normalization", () => {
     expect(evaluateRent(input.advertisedRent, result).check.status).toBe(
       "unavailable",
     );
+    expect(monitor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: "rentcast",
+        operation: "rent_estimate",
+        outcome: "http_error",
+        statusCode: 401,
+      }),
+    );
+    expect(JSON.stringify(monitor.mock.calls)).not.toContain(input.address);
+    expect(JSON.stringify(monitor.mock.calls)).not.toContain("bad-secret");
   });
   it("uses live wording for a live estimate", () => {
     const result = evaluateRent(input.advertisedRent, {

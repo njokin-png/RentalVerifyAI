@@ -1,4 +1,9 @@
 import type { Check, RiskSignalInput, ScanInput } from "@/lib/types";
+import {
+  recordProviderEvent,
+  type ProviderMonitor,
+  type ProviderOutcome,
+} from "@/lib/provider-monitoring";
 
 export type RentEstimate =
   | {
@@ -60,6 +65,7 @@ export class RentCastRentProvider implements RentComparableProvider {
     private readonly apiKey: string,
     private readonly fetchImpl: typeof fetch = fetch,
     private readonly timeoutMs = 5000,
+    private readonly monitor: ProviderMonitor = recordProviderEvent,
   ) {}
 
   async estimate(input: ScanInput): Promise<RentEstimate> {
@@ -70,25 +76,49 @@ export class RentCastRentProvider implements RentComparableProvider {
     if (input.bathrooms != null)
       url.searchParams.set("bathrooms", String(input.bathrooms));
     const controller = new AbortController();
+    const startedAt = Date.now();
+    const report = (outcome: ProviderOutcome, statusCode?: number) =>
+      this.monitor({
+        provider: "rentcast",
+        operation: "rent_estimate",
+        outcome,
+        durationMs: Date.now() - startedAt,
+        statusCode,
+      });
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
     try {
       const response = await this.fetchImpl(url, {
         headers: { "X-Api-Key": this.apiKey, Accept: "application/json" },
         signal: controller.signal,
       });
-      if (!response.ok)
+      if (!response.ok) {
+        report("http_error", response.status);
         return {
           status: "unavailable",
           source: "rentcast",
           error: `Live market-rent lookup failed (${response.status}).`,
         };
-      const data = (await response.json()) as RentCastResponse;
-      if (typeof data.rent !== "number" || data.rent <= 0)
+      }
+      let data: RentCastResponse;
+      try {
+        data = (await response.json()) as RentCastResponse;
+      } catch {
+        report("invalid_response", response.status);
         return {
           status: "unavailable",
           source: "rentcast",
           error: "The live provider returned no usable rent estimate.",
         };
+      }
+      if (typeof data.rent !== "number" || data.rent <= 0) {
+        report("invalid_response", response.status);
+        return {
+          status: "unavailable",
+          source: "rentcast",
+          error: "The live provider returned no usable rent estimate.",
+        };
+      }
+      report("success", response.status);
       return {
         status: "available",
         source: "rentcast",
@@ -106,6 +136,7 @@ export class RentCastRentProvider implements RentComparableProvider {
           : undefined,
       };
     } catch {
+      report(controller.signal.aborted ? "timeout" : "network_error");
       return {
         status: "unavailable",
         source: "rentcast",

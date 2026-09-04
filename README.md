@@ -169,6 +169,8 @@ RENTCAST_API_KEY="your-server-side-key"
 
 The key is used only in server-side requests through the `X-Api-Key` header. Without both settings, RentalVerify AI uses the demo property provider. Live responses are normalized into address validation, ownership, parcel/APN, property-characteristic, and sale-history checks. Missing fields and provider failures become `Unavailable` checks rather than crashing the scan.
 
+Live RentCast property and rent calls emit privacy-safe structured reliability events to server logs. The events distinguish success, HTTP failure, invalid response, timeout, and network failure while excluding addresses, URLs, credentials, response bodies, and raw errors.
+
 ## Persistent scan history and privacy
 
 Completed scans are persisted through Prisma/PostgreSQL and can be reopened from authenticated dashboard/history pages after server restarts. Authenticated scans are associated with the signed-in user; anonymous scans remain unowned. Persisted lookup rules allow access only to anonymous scans or scans owned by the current authenticated user.
