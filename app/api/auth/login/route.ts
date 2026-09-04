@@ -7,11 +7,11 @@ import { rateLimit } from "@/lib/rate-limit";
 import { recordSecurityEvent } from "@/lib/security-audit";
 export async function POST(req: NextRequest) {
   if (
-    !rateLimit(
+    !(await rateLimit(
       `login:${req.headers.get("x-forwarded-for") || "local"}`,
       8,
       300000,
-    )
+    ))
   ) {
     recordSecurityEvent({ action: "login", outcome: "rate_limited" });
     return NextResponse.json(

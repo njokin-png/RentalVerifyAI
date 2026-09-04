@@ -9,7 +9,7 @@ A runnable MVP for explainable rental-listing risk assessment. It combines deter
 - **Services:** provider-neutral adapters under `services/property`, `listing`, `contact`, `images`, `ai`, `rent`, `duplicates`, `payments`, `reports`, `scans`, and `scoring`.
 - **Scoring:** deterministic deductions and classification thresholds live in `services/scoring/config.ts`; each signal includes evidence and an explanation.
 - **Data/auth:** PostgreSQL models through Prisma, bcrypt password hashes, signed HttpOnly session cookies, persisted scan history, and middleware-protected account pages.
-- **Security:** Zod validation, text sanitization, bounded fields, same-origin enforcement for unsafe browser API requests, basic in-memory rate-limit adapter, generic server errors, privacy notice, and image allow-list/size configuration.
+- **Security:** Zod validation, text sanitization, bounded fields, same-origin enforcement for unsafe browser API requests, optional shared serverless rate limiting with local fallback, generic server errors, privacy notice, and image allow-list/size configuration.
 
 ## Quick start
 
@@ -167,10 +167,13 @@ IDs.
 - Use `/api/health` for process/configuration liveness and `/api/ready` for the
   database-backed readiness signal. Continue to verify an authenticated
   persistence flow after deployment.
-- Vercel instances do not share the in-memory rate limiter. Before high-volume
-  public traffic, replace it with a distributed store and add the account and
-  retention hardening listed below; these are known operational follow-ups, not
-  changes hidden in this deployment preparation.
+- For multi-instance production abuse protection, configure either
+  `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` or the equivalent
+  Vercel `KV_REST_API_URL` and `KV_REST_API_TOKEN`. The write-capable token must
+  remain server-side. Counters use atomic fixed windows and keyed hashes, so raw
+  IP addresses are never written to Redis. Missing, invalid, or unavailable
+  shared configuration retains the bounded in-memory limiter; monitor provider
+  availability because that fallback is not shared across Vercel instances.
 
 ### Live property data
 
@@ -205,7 +208,7 @@ Demo providers perform basic address validation, seeded ZIP-prefix rent estimate
 
 ## Next integrations and limitations
 
-Validate RentCast coverage for target markets and add a second property-data provider before production reliance. Then prioritize corporation/license registries and a duplicate-listing search partner. Add Redis-backed distributed rate limiting and secure object storage before production uploads. Keep Stripe in test mode until the external live products, webhook, tax/refund policy, and controlled production smoke test are ready. Add automatic report-retention controls and durable audit-log export before high-volume launch.
+Validate RentCast coverage for target markets and add a second property-data provider before production reliance. Then prioritize corporation/license registries and a duplicate-listing search partner. Configure the implemented Redis-backed distributed rate limiter and add secure object storage before production uploads. Keep Stripe in test mode until the external live products, webhook, tax/refund policy, and controlled production smoke test are ready. Add automatic report-retention controls and durable audit-log export before high-volume launch.
 
 ## OCR and reverse-image verification
 
