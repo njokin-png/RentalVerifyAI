@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   findFirst: vi.fn(),
   findMany: vi.fn(),
+  deleteMany: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -13,11 +14,17 @@ vi.mock("@/lib/prisma", () => ({
       create: mocks.create,
       findFirst: mocks.findFirst,
       findMany: mocks.findMany,
+      deleteMany: mocks.deleteMany,
     },
   },
 }));
 
-import { getScan, listUserScans, saveScan } from "@/services/scans/repository";
+import {
+  deleteOwnedScan,
+  getScan,
+  listUserScans,
+  saveScan,
+} from "@/services/scans/repository";
 
 const result: ScanResult = {
   id: "scan-1",
@@ -96,9 +103,14 @@ describe("scan repository", () => {
 
   it("retains conversation and report only after explicit opt in", async () => {
     mocks.create.mockResolvedValue({});
-    await saveScan({ ...result, input: { ...result.input, saveReport: true } }, "user-1");
+    await saveScan(
+      { ...result, input: { ...result.input, saveReport: true } },
+      "user-1",
+    );
     const call = mocks.create.mock.calls[0][0];
-    expect(call.data.conversation.create.redactedText).toBe(result.input.conversation);
+    expect(call.data.conversation.create.redactedText).toBe(
+      result.input.conversation,
+    );
     expect(call.data.report.create.content).toBeTruthy();
   });
 
@@ -133,6 +145,24 @@ describe("scan repository", () => {
         take: 100,
       }),
     );
-    expect(history[0]).toMatchObject({ id: "scan-2", address: "456 Oak St", classification: "High Risk" });
+    expect(history[0]).toMatchObject({
+      id: "scan-2",
+      address: "456 Oak St",
+      classification: "High Risk",
+    });
+  });
+
+  it("deletes only a scan owned by the authenticated user", async () => {
+    mocks.deleteMany.mockResolvedValue({ count: 1 });
+
+    await expect(deleteOwnedScan("scan-1", "user-1")).resolves.toBe(true);
+    expect(mocks.deleteMany).toHaveBeenCalledWith({
+      where: { id: "scan-1", userId: "user-1" },
+    });
+  });
+
+  it("does not report success when no owned scan matches", async () => {
+    mocks.deleteMany.mockResolvedValue({ count: 0 });
+    await expect(deleteOwnedScan("scan-1", "other-user")).resolves.toBe(false);
   });
 });

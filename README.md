@@ -175,6 +175,8 @@ Completed scans are persisted through Prisma/PostgreSQL and can be reopened from
 
 Conversation text is not retained for an ordinary scan. It is stored only when the user explicitly opts to save a report (`saveReport=true`). Report snapshots follow the same opt-in rule. This keeps pasted conversation content transient by default while still allowing a user-requested saved investigation record.
 
+Authenticated users can permanently delete any investigation they own from the dashboard or history page. Deletion removes the scan and all related property, listing, contact, signal, verification, conversation, image-metadata, and report records through database cascades. The API deliberately returns the same not-found response for missing records and records owned by another user.
+
 ## Demo behavior
 
 Demo providers perform basic address validation, seeded ZIP-prefix rent estimates, deterministic text analysis, contact consistency checks, and a small duplicate-listing simulation. Ownership, licensing, live public duplicate search, and charging are explicitly marked unavailable where no provider is configured. OCR and reverse-image checks use deterministic demo adapters when live provider credentials are incomplete.
