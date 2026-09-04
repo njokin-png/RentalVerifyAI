@@ -68,14 +68,14 @@ local fallbacks active. Provider variables are optional integration hooks and
 are not read as build prerequisites. API keys must never use a `NEXT_PUBLIC_`
 prefix.
 
-### Stripe test-mode payments
+### Stripe payments
 
-Paid checkout is optional and test-mode-only. Free usage and builds continue to
-work when Stripe is absent. Create two Stripe **test mode** Prices (one-time USD
+Paid checkout is optional. Free usage and builds continue to work when Stripe is
+absent. Start with two Stripe **test mode** Prices (one-time USD
 $4.99 and recurring monthly USD $9.99), then set the server-side
 `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_REPORT_PRICE_ID`, and
-`STRIPE_PRO_PRICE_ID`. The application refuses non-`sk_test_` secret keys. No
-publishable key is needed because Checkout Sessions are server-created.
+`STRIPE_PRO_PRICE_ID`. Test mode is the default and accepts only an `sk_test_`
+key. No publishable key is needed because Checkout Sessions are server-created.
 
 Forward signed test events locally with:
 
@@ -88,7 +88,15 @@ should register `/api/stripe/webhook` for `checkout.session.completed`,
 `checkout.session.async_payment_succeeded`, and
 `customer.subscription.created`, `.updated`, and `.deleted`. The success page
 never grants access; only a verified webhook does. Unique event/provider IDs make
-retries idempotent. Do not configure live credentials or live Prices.
+retries idempotent.
+
+Live activation is deliberately fail-closed. Complete the live-payment review,
+create separate live Prices and a live webhook endpoint, then replace all four
+Stripe values together and set both `STRIPE_MODE=live` and
+`STRIPE_LIVE_MODE_ACKNOWLEDGED=true`. A live key is rejected unless both flags
+are exact. Roll back by setting the acknowledgement to `false` and redeploying;
+free scans remain available. Never mix test and live webhook secrets or Price
+IDs.
 
 ## Deploy to Neon and Vercel
 
@@ -126,8 +134,8 @@ retries idempotent. Do not configure live credentials or live Prices.
    - `NEXT_PUBLIC_APP_URL`: the canonical HTTPS Vercel/custom-domain origin;
    - `DEMO_MODE=false` for durable public behavior.
 3. Add optional providers only when intentionally enabling them. Stripe remains
-   disabled unless all four documented test-mode values are present and kept
-   server-side. RentCast needs
+   disabled unless its complete documented mode-specific configuration is
+   present and kept server-side. RentCast needs
    both `PROPERTY_PROVIDER=rentcast` and `RENTCAST_API_KEY`. Live OCR and reverse
    image integrations each need their complete `*_PROVIDER`, `*_API_URL`, and
    `*_API_KEY` set. Missing/incomplete optional provider settings retain the
@@ -197,7 +205,7 @@ Demo providers perform basic address validation, seeded ZIP-prefix rent estimate
 
 ## Next integrations and limitations
 
-Validate RentCast coverage for target markets and add a second property-data provider before production reliance. Then prioritize live rent-comparable data, corporation/license registries, and a duplicate-listing search partner. Add Redis-backed distributed rate limiting and secure object storage before production uploads. Keep Stripe in test mode pending a separate production security review. Add report retention controls, audit logging, and end-to-end/browser tests before production launch.
+Validate RentCast coverage for target markets and add a second property-data provider before production reliance. Then prioritize corporation/license registries and a duplicate-listing search partner. Add Redis-backed distributed rate limiting and secure object storage before production uploads. Keep Stripe in test mode until the external live products, webhook, tax/refund policy, and controlled production smoke test are ready. Add automatic report-retention controls and durable audit-log export before high-volume launch.
 
 ## OCR and reverse-image verification
 

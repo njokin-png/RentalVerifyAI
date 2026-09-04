@@ -2,9 +2,23 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { PLANS } from "@/lib/plans";
 
 const id = (value: string | { id: string } | null) =>
   typeof value === "string" ? value : value?.id;
+
+function isDuplicateStripeEvent(error: unknown) {
+  if (
+    !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+    error.code !== "P2002"
+  )
+    return false;
+  const target = error.meta?.target;
+  return (
+    (Array.isArray(target) && target.length === 1 && target[0] === "id") ||
+    (typeof target === "string" && target.includes("StripeEvent_pkey"))
+  );
+}
 
 export async function processStripeEvent(event: Stripe.Event) {
   try {
@@ -26,14 +40,24 @@ export async function processStripeEvent(event: Stripe.Event) {
             data: { stripeCustomerId: customerId },
           });
         if (plan === "report") {
-          if (session.payment_status !== "paid" || !session.metadata?.scanId)
-            return;
+          if (
+            session.payment_status !== "paid" ||
+            session.amount_total !== PLANS.report.amount ||
+            session.currency?.toLowerCase() !== "usd" ||
+            !session.metadata?.scanId
+          )
+            throw new Error("Report payment details are invalid.");
+          const ownedScan = await tx.rentalScan.findFirst({
+            where: { id: session.metadata.scanId, userId },
+            select: { id: true },
+          });
+          if (!ownedScan) throw new Error("Report scan ownership is invalid.");
           await tx.payment.upsert({
             where: { checkoutSessionId: session.id },
             create: {
               userId,
-              amount: session.amount_total || 499,
-              currency: session.currency || "usd",
+              amount: session.amount_total,
+              currency: "usd",
               status: "paid",
               providerId: id(session.payment_intent),
               checkoutSessionId: session.id,
@@ -54,11 +78,11 @@ export async function processStripeEvent(event: Stripe.Event) {
             create: {
               userId,
               plan: "pro",
-              status: "active",
+              status: "pending",
               providerId: subscriptionId,
               checkoutSessionId: session.id,
             },
-            update: { userId, status: "active", checkoutSessionId: session.id },
+            update: { userId, checkoutSessionId: session.id },
           });
         }
       }
@@ -90,11 +114,7 @@ export async function processStripeEvent(event: Stripe.Event) {
     });
     return { duplicate: false };
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    )
-      return { duplicate: true };
+    if (isDuplicateStripeEvent(error)) return { duplicate: true };
     throw error;
   }
 }
