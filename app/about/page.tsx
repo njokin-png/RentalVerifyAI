@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import { Disclaimer } from "@/components/Disclaimer";
+
+export const metadata: Metadata = {
+  title: "How rental verification works",
+  description:
+    "See how RentalVerify AI combines explainable risk signals, independent checks, and verification gaps.",
+  alternates: { canonical: "/about" },
+};
 const steps = [
   [
     "1",

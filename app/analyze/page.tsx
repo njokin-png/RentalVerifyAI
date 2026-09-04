@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import { AnalyzeForm } from "@/components/AnalyzeForm";
 import { Disclaimer } from "@/components/Disclaimer";
+
+export const metadata: Metadata = {
+  title: "Analyze a rental",
+  description:
+    "Check a rental listing for explainable scam warning signs and verification gaps before sending money.",
+  alternates: { canonical: "/analyze" },
+};
 export default function Analyze() {
   return (
     <div className="container max-w-4xl py-12">

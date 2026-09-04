@@ -1,3 +1,12 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Rental scam safety tips",
+  description:
+    "Practical steps to verify a rental property, contact, and payment request before sharing money or personal information.",
+  alternates: { canonical: "/safety" },
+};
+
 const tips = [
   "Tour the property in person or by a live video call before paying.",
   "Look up ownership through the relevant county or city property records.",

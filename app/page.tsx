@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   ShieldCheck,
   Search,
@@ -9,6 +10,10 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Disclaimer } from "@/components/Disclaimer";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const benefits: Array<[LucideIcon, string, string]> = [
   [

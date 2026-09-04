@@ -4,7 +4,6 @@ import nextConfig from "../next.config.mjs";
 describe("browser security headers", () => {
   it("applies the production baseline to every route", async () => {
     const rules = await nextConfig.headers?.();
-    expect(rules).toHaveLength(1);
     expect(rules?.[0].source).toBe("/:path*");
 
     const headers = Object.fromEntries(
@@ -17,5 +16,23 @@ describe("browser security headers", () => {
       "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
       "Strict-Transport-Security": "max-age=31536000",
     });
+
+    const noIndexSources = (rules ?? [])
+      .filter((rule) =>
+        rule.headers.some(
+          ({ key, value }) =>
+            key === "X-Robots-Tag" && value === "noindex, nofollow",
+        ),
+      )
+      .map((rule) => rule.source);
+    expect(noIndexSources).toEqual(
+      expect.arrayContaining([
+        "/api/:path*",
+        "/account",
+        "/history/:path*",
+        "/results/:path*",
+        "/report/:path*",
+      ]),
+    );
   });
 });
