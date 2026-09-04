@@ -3,10 +3,13 @@ import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { getSession } from "@/lib/auth";
 
-function LogoutButton() {
+function LogoutButton({ className = "" }: { className?: string }) {
   return (
     <form action="/api/auth/logout" method="post">
-      <button className="font-semibold hover:text-teal" type="submit">
+      <button
+        className={`font-semibold hover:text-teal ${className}`}
+        type="submit"
+      >
         Log out
       </button>
     </form>
@@ -45,20 +48,70 @@ export async function Header() {
             CHECK THIS RENTAL
           </Link>
         </nav>
-        <div className="md:hidden flex items-center gap-3 text-sm">
-          {session ? (
-            <>
-              <Link className="font-semibold" href="/dashboard">
-                Dashboard
-              </Link>
-              <LogoutButton />
-            </>
-          ) : (
-            <Link className="font-semibold" href="/login">
-              Log in
+        <details className="relative md:hidden text-sm">
+          <summary className="cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 font-bold text-navy hover:border-teal hover:text-teal">
+            Menu
+          </summary>
+          <nav
+            aria-label="Mobile navigation"
+            className="absolute right-0 z-50 mt-2 min-w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+          >
+            <Link
+              className="block rounded-lg px-3 py-2 hover:bg-mist"
+              href="/analyze"
+            >
+              Analyze
             </Link>
-          )}
-        </div>
+            <Link
+              className="block rounded-lg px-3 py-2 hover:bg-mist"
+              href="/safety"
+            >
+              Safety tips
+            </Link>
+            <Link
+              className="block rounded-lg px-3 py-2 hover:bg-mist"
+              href="/about"
+            >
+              How it works
+            </Link>
+            <Link
+              className="block rounded-lg px-3 py-2 hover:bg-mist"
+              href="/pricing"
+            >
+              Pricing
+            </Link>
+            {session ? (
+              <>
+                <Link
+                  className="block rounded-lg px-3 py-2 hover:bg-mist"
+                  href="/dashboard"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  className="block rounded-lg px-3 py-2 hover:bg-mist"
+                  href="/history"
+                >
+                  History
+                </Link>
+                <Link
+                  className="block rounded-lg px-3 py-2 hover:bg-mist"
+                  href="/account"
+                >
+                  Account
+                </Link>
+                <LogoutButton className="block w-full rounded-lg px-3 py-2 text-left hover:bg-mist" />
+              </>
+            ) : (
+              <Link
+                className="block rounded-lg px-3 py-2 hover:bg-mist"
+                href="/login"
+              >
+                Log in
+              </Link>
+            )}
+          </nav>
+        </details>
       </div>
     </header>
   );

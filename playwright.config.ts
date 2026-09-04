@@ -14,6 +14,12 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testMatch: "critical-journey.spec.ts",
+    },
+    {
+      name: "mobile-chromium",
+      use: { ...devices["Pixel 7"] },
+      testMatch: "mobile-navigation.spec.ts",
     },
   ],
   webServer: {
