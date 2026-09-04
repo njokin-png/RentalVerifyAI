@@ -47,6 +47,7 @@ The project uses the public npm registry and does not include a repository-level
 ```bash
 npm run dev        # development server
 npm test           # unit/service tests
+npm run test:e2e   # critical Chromium journey (requires test PostgreSQL)
 npm run lint       # Next.js lint
 npm run build      # production build
 npm run db:generate
