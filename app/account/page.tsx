@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { PLANS } from "@/lib/plans";
+import { ClearHistoryButton } from "@/components/ClearHistoryButton";
 
 export default async function Account() {
   const session = await getSession();
@@ -23,10 +24,18 @@ export default async function Account() {
           <span className="label">Conversation retention</span>
           <p className="text-sm text-slate-600">
             Conversation text is transient unless a report is explicitly saved.
-            Saved data controls will be available with persistent accounts.
+            You can permanently remove individual investigations from history or
+            erase all saved investigations below.
           </p>
         </div>
-        <button className="btn">Save preferences</button>
+        <div className="border-t pt-5">
+          <span className="label">Delete saved investigations</span>
+          <p className="mb-3 text-sm text-slate-600">
+            This permanently deletes your saved scans, reports, and related
+            investigation data. Your account and subscription are not deleted.
+          </p>
+          <ClearHistoryButton />
+        </div>
       </div>
     </div>
   );
