@@ -15,7 +15,11 @@ import { POST } from "@/app/api/stripe/webhook/route";
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.config.mockReturnValue({ webhookSecret: "whsec_test" });
-  mocks.construct.mockReturnValue({ id: "evt_1" });
+  mocks.construct.mockReturnValue({
+    id: "evt_1",
+    type: "checkout.session.completed",
+  });
+  mocks.process.mockResolvedValue({ duplicate: false });
 });
 describe("Stripe webhook signatures", () => {
   it("rejects an invalid signature without processing", async () => {
@@ -47,5 +51,20 @@ describe("Stripe webhook signatures", () => {
       "whsec_test",
     );
     expect(mocks.process).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns a safe error when a signed event cannot be persisted", async () => {
+    mocks.process.mockRejectedValue(new Error("database unavailable"));
+    const response = await POST(
+      new Request("http://localhost/api/stripe/webhook", {
+        method: "POST",
+        headers: { "stripe-signature": "signed" },
+        body: "raw-body",
+      }),
+    );
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "Webhook processing failed.",
+    });
   });
 });
