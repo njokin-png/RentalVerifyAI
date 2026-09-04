@@ -68,7 +68,7 @@ Track these as separate, reviewable issues rather than bundling them into deploy
 - distributed rate limiting for multi-instance deployments;
 - durable export and alerting for structured security audit events;
 - a documented automatic expiration schedule for old saved reports;
-- end-to-end browser coverage of the critical user journey;
+- expanded cross-browser and mobile coverage beyond the Chromium critical journey;
 - email deliverability/domain verification and abuse controls;
 - external alerting and dashboards for live-provider reliability telemetry.
 
@@ -100,6 +100,13 @@ microphone, and geolocation access are disabled, and HTTPS is remembered for one
 year. A full Content Security Policy remains a separate change because Next.js
 script nonces and every external integration must be validated before enforcing
 one in production.
+
+## Critical browser journey
+
+CI runs a Chromium journey against a disposable PostgreSQL service. It covers
+account creation, the post-signup verification notice, login, authenticated
+rental analysis, saved-history access, reopening a result, and permanent
+investigation deletion. The test never uses production data or credentials.
 
 ## Merge rule
 
