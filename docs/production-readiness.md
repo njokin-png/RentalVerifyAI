@@ -62,7 +62,7 @@ Track these as separate, reviewable issues rather than bundling them into deploy
 
 - distributed rate limiting for multi-instance deployments;
 - audit logging for security-sensitive account/payment events;
-- broader scheduled retention policies and account-wide deletion controls;
+- a documented automatic expiration schedule for old saved reports;
 - end-to-end browser coverage of the critical user journey;
 - email deliverability/domain verification and abuse controls;
 - live-provider reliability/timeout monitoring.

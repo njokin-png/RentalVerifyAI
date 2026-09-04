@@ -21,6 +21,7 @@ vi.mock("@/lib/prisma", () => ({
 
 import {
   deleteOwnedScan,
+  deleteUserScans,
   getScan,
   listUserScans,
   saveScan,
@@ -164,5 +165,13 @@ describe("scan repository", () => {
   it("does not report success when no owned scan matches", async () => {
     mocks.deleteMany.mockResolvedValue({ count: 0 });
     await expect(deleteOwnedScan("scan-1", "other-user")).resolves.toBe(false);
+  });
+
+  it("deletes all and only scans belonging to one user", async () => {
+    mocks.deleteMany.mockResolvedValue({ count: 3 });
+    await expect(deleteUserScans("user-1")).resolves.toBe(3);
+    expect(mocks.deleteMany).toHaveBeenCalledWith({
+      where: { userId: "user-1" },
+    });
   });
 });

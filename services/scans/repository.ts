@@ -208,6 +208,11 @@ export async function deleteOwnedScan(id: string, userId: string) {
   return result.count === 1;
 }
 
+export async function deleteUserScans(userId: string) {
+  const result = await prisma.rentalScan.deleteMany({ where: { userId } });
+  return result.count;
+}
+
 export type ScanHistoryItem = {
   id: string;
   address: string;
