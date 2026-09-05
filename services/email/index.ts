@@ -20,11 +20,13 @@ export async function sendEmail(message: EmailMessage): Promise<boolean> {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        provider: config.provider,
         from: config.from,
         to: message.to,
         subject: message.subject,
         text: message.text,
+        ...(config.provider === "generic"
+          ? { provider: process.env.EMAIL_PROVIDER?.trim() }
+          : {}),
       }),
       signal: controller.signal,
     });

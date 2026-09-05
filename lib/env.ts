@@ -12,7 +12,7 @@ export type StripeConfiguration = {
 };
 
 export type EmailConfiguration = {
-  provider: string;
+  provider: "resend" | "generic";
   apiUrl: string;
   apiKey: string;
   from: string;
@@ -51,10 +51,21 @@ export function getStripeConfiguration(
 export function getEmailConfiguration(
   env: Environment = process.env,
 ): EmailConfiguration | null {
+  const resendKey = env.RESEND_API_KEY?.trim();
+  const from = env.EMAIL_FROM?.trim();
+  if (resendKey && from) {
+    if (!resendKey.startsWith("re_")) return null;
+    return {
+      provider: "resend",
+      apiUrl: "https://api.resend.com/emails",
+      apiKey: resendKey,
+      from,
+    };
+  }
+
   const provider = env.EMAIL_PROVIDER?.trim();
   const apiUrl = env.EMAIL_API_URL?.trim();
   const apiKey = env.EMAIL_API_KEY?.trim();
-  const from = env.EMAIL_FROM?.trim();
   if (!provider || !apiUrl || !apiKey || !from) return null;
   try {
     const url = new URL(apiUrl);
@@ -62,7 +73,7 @@ export function getEmailConfiguration(
   } catch {
     return null;
   }
-  return { provider, apiUrl, apiKey, from };
+  return { provider: "generic", apiUrl, apiKey, from };
 }
 
 function parsePostgresUrl(name: string, value: string | undefined) {

@@ -38,7 +38,9 @@ Repository code cannot safely supply deployment secrets. Before public launch, c
 - `AUTH_SECRET` is unique and at least 32 characters.
 - `NEXT_PUBLIC_APP_URL` is the canonical HTTPS origin.
 - `DEMO_MODE=false` for durable public behavior.
-- Email delivery has complete server-side `EMAIL_PROVIDER`, `EMAIL_API_URL`, `EMAIL_API_KEY`, and `EMAIL_FROM` configuration before relying on verification/reset email delivery.
+- Email delivery has complete server-side `RESEND_API_KEY` and verified
+  `EMAIL_FROM` configuration (or all four generic `EMAIL_*` provider values)
+  before relying on verification/reset email delivery.
 - Shared abuse protection has either the complete `UPSTASH_REDIS_REST_*` pair or complete `KV_REST_API_*` pair. Keep the write-capable token server-side and monitor provider availability.
 - Stripe stays in test mode until the external live-mode checklist is complete.
 
