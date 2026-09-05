@@ -68,6 +68,19 @@ local fallbacks active. Provider variables are optional integration hooks and
 are not read as build prerequisites. API keys must never use a `NEXT_PUBLIC_`
 prefix.
 
+### Account email delivery
+
+Resend is the supported production email path on Vercel. Configure the
+server-side `RESEND_API_KEY` and a verified sender in `EMAIL_FROM` (for example,
+`RentalVerifyAI <account@yourdomain.com>`). The application posts directly to
+Resend's HTTPS email endpoint; the key and verification/reset tokens are never
+sent to the browser or written to logs. Incomplete or invalid configuration
+disables delivery safely without blocking the build.
+
+The existing provider-neutral HTTP integration remains available by setting
+all four generic values: `EMAIL_PROVIDER`, `EMAIL_API_URL`, `EMAIL_API_KEY`, and
+`EMAIL_FROM`. Do not configure both paths; `RESEND_API_KEY` takes precedence.
+
 ### Stripe payments
 
 Paid checkout is optional. Free usage and builds continue to work when Stripe is
