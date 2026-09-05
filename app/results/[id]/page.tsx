@@ -6,7 +6,10 @@ import { getSession } from "@/lib/auth";
 import { getScan } from "@/services/scans/repository";
 import { canAccessPaidReport } from "@/services/payments/entitlements";
 
-export default async function Results({ params }: { params: { id: string } }) {
+export default async function Results(props: {
+  params: Promise<{ id: string }>;
+}) {
+  const params = await props.params;
   const session = await getSession();
   let scan = scanStore.get(params.id) || getDemoScan(params.id);
 

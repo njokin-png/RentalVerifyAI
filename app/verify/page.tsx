@@ -1,10 +1,9 @@
 import Link from "next/link";
 
-export default function VerifyPage({
-  searchParams,
-}: {
-  searchParams: { status?: string };
+export default async function VerifyPage(props: {
+  searchParams: Promise<{ status?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   const success = searchParams.status === "success";
   return (
     <div className="container max-w-md py-16">
@@ -21,7 +20,10 @@ export default function VerifyPage({
           Continue to dashboard
         </Link>
         {!success && (
-          <Link className="text-teal font-bold block text-center" href="/resend-verification">
+          <Link
+            className="text-teal font-bold block text-center"
+            href="/resend-verification"
+          >
             Request another verification link
           </Link>
         )}

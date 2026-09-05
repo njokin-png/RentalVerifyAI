@@ -13,7 +13,7 @@ A runnable MVP for explainable rental-listing risk assessment. It combines deter
 
 ## Quick start
 
-Requires Node.js 20+.
+Requires Node.js 20.19+.
 
 ```bash
 cp .env.example .env

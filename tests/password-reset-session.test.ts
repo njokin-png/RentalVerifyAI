@@ -14,6 +14,11 @@ vi.mock("@/lib/account-tokens", () => ({
 
 import { POST } from "@/app/api/auth/reset-password/route";
 
+type ApplyReset = (
+  transaction: { user: { update: typeof mocks.update } },
+  userId: string,
+) => Promise<unknown>;
+
 function request() {
   return new NextRequest(
     "https://rentalverifyai.vercel.app/api/auth/reset-password",
@@ -36,7 +41,7 @@ beforeEach(() => {
   mocks.hash.mockResolvedValue("new-password-hash");
   mocks.update.mockResolvedValue({});
   mocks.consume.mockImplementation(
-    async (_token: string, _type: unknown, apply: Function) =>
+    async (_token: string, _type: unknown, apply: ApplyReset) =>
       apply({ user: { update: mocks.update } }, "user-1"),
   );
 });

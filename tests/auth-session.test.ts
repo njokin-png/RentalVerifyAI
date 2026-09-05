@@ -3,7 +3,7 @@ import { SignJWT } from "jose";
 import { NextRequest } from "next/server";
 import { POST as logout } from "@/app/api/auth/logout/route";
 import { verifySessionToken } from "@/lib/auth";
-import { middleware } from "@/middleware";
+import { proxy } from "@/proxy";
 
 describe("session handling", () => {
   it("treats an invalid session as logged out", async () => {
@@ -27,7 +27,7 @@ describe("session handling", () => {
     "redirects a protected route when its session is %s",
     async (token) => {
       const headers = token ? { cookie: `rv_session=${token}` } : undefined;
-      const response = await middleware(
+      const response = await proxy(
         new NextRequest("http://localhost/dashboard", { headers }),
       );
 
@@ -51,7 +51,7 @@ describe("session handling", () => {
           process.env.AUTH_SECRET || "development-secret-change-this-now-32",
         ),
       );
-    const response = await middleware(
+    const response = await proxy(
       new NextRequest("http://localhost/dashboard", {
         headers: { cookie: `rv_session=${token}` },
       }),

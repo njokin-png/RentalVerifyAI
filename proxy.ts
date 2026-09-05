@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session-token";
 import { isSameOriginRequest } from "@/lib/csrf";
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/api/")) {
     // Stripe authenticates its server-to-server webhook with a signed raw body.
     if (

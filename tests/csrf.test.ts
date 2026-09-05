@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NextRequest } from "next/server";
 import { isSameOriginRequest } from "@/lib/csrf";
-import { middleware } from "@/middleware";
+import { proxy } from "@/proxy";
 
 function request(
   method: string,
@@ -61,7 +61,7 @@ describe("same-origin request protection", () => {
 
 describe("API middleware enforcement", () => {
   it("blocks a cross-origin browser API request", async () => {
-    const response = await middleware(
+    const response = await proxy(
       new NextRequest("https://rentalverifyai.vercel.app/api/scans", {
         method: "POST",
         headers: { origin: "https://evil.example" },
@@ -75,7 +75,7 @@ describe("API middleware enforcement", () => {
   });
 
   it("allows a same-origin browser API request to continue", async () => {
-    const response = await middleware(
+    const response = await proxy(
       new NextRequest("https://rentalverifyai.vercel.app/api/scans", {
         method: "POST",
         headers: { origin: "https://rentalverifyai.vercel.app" },
@@ -86,7 +86,7 @@ describe("API middleware enforcement", () => {
   });
 
   it("preserves Stripe's separately authenticated webhook", async () => {
-    const response = await middleware(
+    const response = await proxy(
       new NextRequest("https://rentalverifyai.vercel.app/api/stripe/webhook", {
         method: "POST",
       }),
