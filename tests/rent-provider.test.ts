@@ -36,7 +36,7 @@ describe("rent provider selection", () => {
 
 describe("RentCast normalization", () => {
   it("maps the live estimate, range, and comparable count", async () => {
-    const fetchImpl = vi.fn(
+    const fetchImpl = vi.fn<typeof fetch>(
       async () =>
         new Response(
           JSON.stringify({

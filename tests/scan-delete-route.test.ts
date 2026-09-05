@@ -16,7 +16,7 @@ function remove(id = "scan-1") {
   return DELETE(
     new Request(`http://localhost/api/scans/${id}`, { method: "DELETE" }),
     {
-      params: { id },
+      params: Promise.resolve({ id }),
     },
   );
 }

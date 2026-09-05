@@ -4,8 +4,9 @@ import { deleteOwnedScan } from "@/services/scans/repository";
 
 export async function DELETE(
   _: Request,
-  { params }: { params: { id: string } },
+  props: { params: Promise<{ id: string }> },
 ) {
+  const params = await props.params;
   const session = await getSession();
   if (!session) {
     return NextResponse.json(

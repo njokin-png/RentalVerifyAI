@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { PaidPlan } from "@/lib/plans";
 
 export function CheckoutButton({
@@ -11,6 +12,7 @@ export function CheckoutButton({
   scanId?: string;
   disabled?: boolean;
 }) {
+  const router = useRouter();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function checkout() {
@@ -23,7 +25,9 @@ export function CheckoutButton({
     });
     const data = await response.json();
     if (response.status === 401) {
-      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+      router.push(
+        `/login?next=${encodeURIComponent(window.location.pathname)}`,
+      );
       return;
     }
     if (!response.ok || !data.url) {

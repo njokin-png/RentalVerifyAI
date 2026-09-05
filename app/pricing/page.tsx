@@ -35,11 +35,10 @@ const features = {
   ],
 };
 
-export default function Pricing({
-  searchParams,
-}: {
-  searchParams: { scanId?: string };
+export default async function Pricing(props: {
+  searchParams: Promise<{ scanId?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   const stripe = getStripeConfiguration();
   const configured = Boolean(stripe);
   const plans = [

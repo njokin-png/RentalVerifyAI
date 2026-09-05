@@ -7,7 +7,10 @@ import { canAccessPaidReport } from "@/services/payments/entitlements";
 import { reportData } from "@/services/reports/generator";
 import { Disclaimer } from "@/components/Disclaimer";
 import { PrintButton } from "@/components/PrintButton";
-export default async function Report({ params }: { params: { id: string } }) {
+export default async function Report(props: {
+  params: Promise<{ id: string }>;
+}) {
+  const params = await props.params;
   const session = await getSession();
   let scan = scanStore.get(params.id) || getDemoScan(params.id);
   if (!scan) {

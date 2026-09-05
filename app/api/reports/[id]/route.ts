@@ -6,7 +6,11 @@ import { getOwnedScan } from "@/services/scans/repository";
 import { reportData } from "@/services/reports/generator";
 import { canAccessPaidReport } from "@/services/payments/entitlements";
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  _: Request,
+  props: { params: Promise<{ id: string }> },
+) {
+  const params = await props.params;
   const session = await getSession();
   let scan = scanStore.get(params.id) || getDemoScan(params.id);
 

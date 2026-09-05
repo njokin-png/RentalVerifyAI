@@ -28,7 +28,7 @@ export async function createSession(user: {
     .setIssuedAt()
     .setExpirationTime("7d")
     .sign(getAuthSecret());
-  cookies().set(SESSION_COOKIE_NAME, token, {
+  (await cookies()).set(SESSION_COOKIE_NAME, token, {
     ...SESSION_COOKIE_OPTIONS,
     maxAge: 604800,
   });
@@ -51,5 +51,7 @@ export async function validateSessionToken(token?: string) {
 }
 
 export async function getSession() {
-  return validateSessionToken(cookies().get(SESSION_COOKIE_NAME)?.value);
+  return validateSessionToken(
+    (await cookies()).get(SESSION_COOKIE_NAME)?.value,
+  );
 }

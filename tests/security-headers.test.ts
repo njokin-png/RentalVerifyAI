@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import nextConfig from "../next.config.mjs";
+import nextConfig from "../next.config";
 
 describe("browser security headers", () => {
   it("applies the production baseline to every route", async () => {

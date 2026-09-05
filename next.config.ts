@@ -1,3 +1,5 @@
+import type { NextConfig } from "next";
+
 const noIndexRoutes = [
   "/api/:path*",
   "/account",
@@ -15,8 +17,7 @@ const noIndexRoutes = [
   "/resend-verification",
 ];
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
   experimental: { serverActions: { bodySizeLimit: "5mb" } },
   async headers() {
     return [
@@ -46,4 +47,5 @@ const nextConfig = {
     ];
   },
 };
+
 export default nextConfig;
