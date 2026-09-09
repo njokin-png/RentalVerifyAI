@@ -1,7 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { CheckoutButton } from "@/components/CheckoutButton";
-import { getStripeConfiguration } from "@/lib/env";
+import {
+  getStripeConfiguration,
+  getStripeConfigurationIssues,
+} from "@/lib/env";
 import { PLANS } from "@/lib/plans";
 
 export const metadata: Metadata = {
@@ -40,6 +43,11 @@ export default async function Pricing(props: {
 }) {
   const searchParams = await props.searchParams;
   const stripe = getStripeConfiguration();
+  if (!stripe) {
+    console.warn(
+      `Stripe checkout disabled; invalid variables: ${getStripeConfigurationIssues().join(", ")}`,
+    );
+  }
   const configured = Boolean(stripe);
   const plans = [
     ["free", PLANS.free],
