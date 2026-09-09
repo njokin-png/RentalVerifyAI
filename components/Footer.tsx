@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 export function Footer() {
   return (
     <footer className="border-t bg-white mt-20">
@@ -14,6 +15,8 @@ export function Footer() {
           <Link href="/about">How it works</Link>
           <Link href="/safety">Safety</Link>
           <Link href="/pricing">Pricing</Link>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
           <p className="mt-3">© 2026 RentalVerify AI</p>
         </div>
       </div>
