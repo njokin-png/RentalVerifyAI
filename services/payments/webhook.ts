@@ -7,6 +7,20 @@ import { PLANS } from "@/lib/plans";
 const id = (value: string | { id: string } | null) =>
   typeof value === "string" ? value : value?.id;
 
+function subscriptionPeriodEnd(subscription: Stripe.Subscription) {
+  const payload = subscription as unknown as {
+    current_period_end?: number;
+    items?: { data?: Array<{ current_period_end?: number }> };
+  };
+  const timestamps = [
+    payload.current_period_end,
+    ...(payload.items?.data?.map((item) => item.current_period_end) || []),
+  ].filter((value): value is number => Number.isFinite(value));
+  return timestamps.length > 0
+    ? new Date(Math.max(...timestamps) * 1000)
+    : null;
+}
+
 function isDuplicateStripeEvent(error: unknown) {
   if (
     !(error instanceof Prisma.PrismaClientKnownRequestError) ||
@@ -96,6 +110,7 @@ export async function processStripeEvent(event: Stripe.Event) {
         const subscription = event.data.object as Stripe.Subscription;
         const userId = subscription.metadata.userId;
         if (!userId) throw new Error("Subscription metadata is invalid.");
+        const currentPeriodEnd = subscriptionPeriodEnd(subscription);
         await tx.subscription.upsert({
           where: { providerId: subscription.id },
           create: {
@@ -103,11 +118,11 @@ export async function processStripeEvent(event: Stripe.Event) {
             plan: "pro",
             status: subscription.status,
             providerId: subscription.id,
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            currentPeriodEnd,
           },
           update: {
             status: subscription.status,
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            currentPeriodEnd,
           },
         });
       }
