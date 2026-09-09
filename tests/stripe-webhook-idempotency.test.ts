@@ -135,4 +135,38 @@ describe("Stripe webhook payment integrity", () => {
       }),
     );
   });
+
+  it("records the item billing period from current Stripe subscription events", async () => {
+    const tx = {
+      stripeEvent: { create: vi.fn() },
+      subscription: { upsert: vi.fn() },
+    };
+    transactionWith(tx);
+
+    await processStripeEvent({
+      id: "evt_subscription",
+      type: "customer.subscription.updated",
+      data: {
+        object: {
+          id: "sub_1",
+          status: "active",
+          metadata: { userId: "user-1" },
+          items: { data: [{ current_period_end: 1_800_000_000 }] },
+        },
+      },
+    } as never);
+
+    expect(tx.subscription.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          status: "active",
+          currentPeriodEnd: new Date(1_800_000_000_000),
+        }),
+        update: expect.objectContaining({
+          status: "active",
+          currentPeriodEnd: new Date(1_800_000_000_000),
+        }),
+      }),
+    );
+  });
 });
