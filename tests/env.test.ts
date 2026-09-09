@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getAuthSecret,
   getStripeConfiguration,
+  getStripeConfigurationIssues,
   validateProductionEnvironment,
 } from "@/lib/env";
 
@@ -85,5 +86,34 @@ describe("production environment", () => {
       reportPriceId: "price_report",
       proPriceId: "price_pro",
     });
+  });
+
+  it("trims Stripe values and identifies invalid variable names safely", () => {
+    expect(
+      getStripeConfiguration({
+        STRIPE_MODE: " test ",
+        STRIPE_SECRET_KEY: " sk_test_safe ",
+        STRIPE_WEBHOOK_SECRET: " whsec_x ",
+        STRIPE_REPORT_PRICE_ID: " price_report ",
+        STRIPE_PRO_PRICE_ID: " price_pro ",
+      }),
+    ).toEqual({
+      mode: "test",
+      secretKey: "sk_test_safe",
+      webhookSecret: "whsec_x",
+      reportPriceId: "price_report",
+      proPriceId: "price_pro",
+    });
+    expect(
+      getStripeConfigurationIssues({
+        STRIPE_MODE: "test",
+        STRIPE_SECRET_KEY: "not-a-key",
+      }),
+    ).toEqual([
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "STRIPE_REPORT_PRICE_ID",
+      "STRIPE_PRO_PRICE_ID",
+    ]);
   });
 });
