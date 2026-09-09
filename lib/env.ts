@@ -11,6 +11,28 @@ export type StripeConfiguration = {
   proPriceId: string;
 };
 
+export function getStripeConfigurationIssues(
+  env: Environment = process.env,
+): string[] {
+  const mode = env.STRIPE_MODE?.trim() || "test";
+  const secretKey = env.STRIPE_SECRET_KEY?.trim();
+  const webhookSecret = env.STRIPE_WEBHOOK_SECRET?.trim();
+  const reportPriceId = env.STRIPE_REPORT_PRICE_ID?.trim();
+  const proPriceId = env.STRIPE_PRO_PRICE_ID?.trim();
+  const issues: string[] = [];
+
+  if (mode !== "test" && mode !== "live") issues.push("STRIPE_MODE");
+  if (!secretKey || (mode === "test" && !secretKey.startsWith("sk_test_")) ||
+      (mode === "live" && !secretKey.startsWith("sk_live_")))
+    issues.push("STRIPE_SECRET_KEY");
+  if (!webhookSecret?.startsWith("whsec_")) issues.push("STRIPE_WEBHOOK_SECRET");
+  if (!reportPriceId?.startsWith("price_")) issues.push("STRIPE_REPORT_PRICE_ID");
+  if (!proPriceId?.startsWith("price_")) issues.push("STRIPE_PRO_PRICE_ID");
+  if (mode === "live" && env.STRIPE_LIVE_MODE_ACKNOWLEDGED?.trim() !== "true")
+    issues.push("STRIPE_LIVE_MODE_ACKNOWLEDGED");
+  return issues;
+}
+
 export type EmailConfiguration = {
   provider: "resend" | "generic";
   apiUrl: string;
@@ -23,27 +45,14 @@ export function getStripeConfiguration(
   env: Environment = process.env,
 ): StripeConfiguration | null {
   const values = {
-    secretKey: env.STRIPE_SECRET_KEY,
-    webhookSecret: env.STRIPE_WEBHOOK_SECRET,
-    reportPriceId: env.STRIPE_REPORT_PRICE_ID,
-    proPriceId: env.STRIPE_PRO_PRICE_ID,
+    secretKey: env.STRIPE_SECRET_KEY?.trim(),
+    webhookSecret: env.STRIPE_WEBHOOK_SECRET?.trim(),
+    reportPriceId: env.STRIPE_REPORT_PRICE_ID?.trim(),
+    proPriceId: env.STRIPE_PRO_PRICE_ID?.trim(),
   };
-  if (Object.values(values).some((value) => !value)) return null;
+  if (getStripeConfigurationIssues(env).length > 0) return null;
   const mode = env.STRIPE_MODE?.trim() || "test";
   if (mode !== "test" && mode !== "live") return null;
-  if (!values.webhookSecret!.startsWith("whsec_")) return null;
-  if (mode === "test" && !values.secretKey!.startsWith("sk_test_")) return null;
-  if (
-    mode === "live" &&
-    (!values.secretKey!.startsWith("sk_live_") ||
-      env.STRIPE_LIVE_MODE_ACKNOWLEDGED !== "true")
-  )
-    return null;
-  if (
-    !values.reportPriceId!.startsWith("price_") ||
-    !values.proPriceId!.startsWith("price_")
-  )
-    return null;
   return { mode, ...(values as Omit<StripeConfiguration, "mode">) };
 }
 
