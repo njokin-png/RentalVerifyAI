@@ -16,6 +16,12 @@ Vercel preview deployment is an additional deployment signal, not a replacement 
 
 ## Release sequence
 
+The scheduled `Production smoke check` workflow rechecks the canonical production
+homepage, configuration health, database readiness, and Stripe pricing every six
+hours. It can also be run manually from GitHub Actions. Run the same checks locally
+with `npm run smoke:production`; set `PRODUCTION_BASE_URL` to exercise a different
+deployment.
+
 1. Review the pull-request diff and any committed Prisma migration SQL.
 2. Require green repository CI and a successful Vercel preview.
 3. For releases with schema changes, run `npm run deploy:migrate` once from a trusted environment against the intended Neon database before promotion. Never run `prisma db push` against production.
