@@ -1,11 +1,32 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { PLANS } from "@/lib/plans";
+import { prisma } from "@/lib/prisma";
 import { ClearHistoryButton } from "@/components/ClearHistoryButton";
+import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 
 export default async function Account() {
   const session = await getSession();
   if (!session) redirect("/login?next=%2Faccount");
+  const account = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: {
+      stripeCustomerId: true,
+      subscriptions: {
+        where: {
+          plan: "pro",
+          status: { in: ["active", "trialing"] },
+          OR: [
+            { currentPeriodEnd: null },
+            { currentPeriodEnd: { gt: new Date() } },
+          ],
+        },
+        select: { id: true },
+        take: 1,
+      },
+    },
+  });
+  const hasPro = Boolean(account?.subscriptions.length);
 
   return (
     <div className="container max-w-2xl py-12">
@@ -18,7 +39,16 @@ export default async function Account() {
         </label>
         <div>
           <span className="label">Plan</span>
-          <p>Free · {PLANS.free.monthlyScanLimit} basic scans per month</p>
+          <p>
+            {hasPro
+              ? "Pro · Unlimited scans"
+              : `Free · ${PLANS.free.monthlyScanLimit} basic scans per month`}
+          </p>
+          {account?.stripeCustomerId ? (
+            <div className="mt-3">
+              <ManageSubscriptionButton />
+            </div>
+          ) : null}
         </div>
         <div>
           <span className="label">Conversation retention</span>

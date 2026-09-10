@@ -52,3 +52,15 @@ export async function createCheckout(input: {
         : undefined,
   });
 }
+
+export async function createCustomerPortal(input: {
+  customerId: string;
+  returnUrl: string;
+}) {
+  const stripe = stripeClient();
+  if (!stripe) return null;
+  return stripe.billingPortal.sessions.create({
+    customer: input.customerId,
+    return_url: input.returnUrl,
+  });
+}
