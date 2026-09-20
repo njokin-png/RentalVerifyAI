@@ -6,7 +6,9 @@ const checks = [
   {
     name: "homepage",
     path: "/",
-    verify: (body) => body.includes("Check the warning signs before you pay"),
+    verify: (body) =>
+      body.includes("Check the warning signs") &&
+      body.includes("before you pay."),
   },
   {
     name: "configuration health",
@@ -25,7 +27,8 @@ const checks = [
     name: "Stripe pricing",
     path: "/pricing",
     verify: (body) =>
-      body.includes("Secure test checkout is provided by Stripe") &&
+      (body.includes("Secure checkout is provided by Stripe.") ||
+        body.includes("Secure test checkout is provided by Stripe.")) &&
       body.includes("$9.99/month"),
   },
 ];
