@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  ANDROID_DEVICE_TEST_FINGERPRINT,
+  ANDROID_DEVICE_TEST_FINGERPRINTS,
   ANDROID_PACKAGE_NAME,
   createAndroidAssetLinks,
   parseAndroidFingerprints,
@@ -21,7 +21,7 @@ describe("Android Digital Asset Links", () => {
           namespace: "android_app",
           package_name: ANDROID_PACKAGE_NAME,
           sha256_cert_fingerprints: [
-            ANDROID_DEVICE_TEST_FINGERPRINT,
+            ...ANDROID_DEVICE_TEST_FINGERPRINTS,
             VALID_FINGERPRINT,
           ],
         },
@@ -37,14 +37,14 @@ describe("Android Digital Asset Links", () => {
     ).toEqual([VALID_FINGERPRINT]);
   });
 
-  it("publishes the device-test certificate before a release key is configured", () => {
+  it("publishes the device-test certificates before a release key is configured", () => {
     expect(createAndroidAssetLinks(undefined)).toEqual([
       {
         relation: ["delegate_permission/common.handle_all_urls"],
         target: {
           namespace: "android_app",
           package_name: ANDROID_PACKAGE_NAME,
-          sha256_cert_fingerprints: [ANDROID_DEVICE_TEST_FINGERPRINT],
+          sha256_cert_fingerprints: ANDROID_DEVICE_TEST_FINGERPRINTS,
         },
       },
     ]);
