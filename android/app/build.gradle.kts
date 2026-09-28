@@ -10,8 +10,8 @@ android {
         applicationId = "com.nkonenterprises.rentalverifyai"
         minSdk = 23
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
     }
 
     buildTypes {
@@ -28,8 +28,4 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-}
-
-dependencies {
-    implementation("com.google.androidbrowserhelper:androidbrowserhelper:2.7.2")
 }
