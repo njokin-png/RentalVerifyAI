@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  ANDROID_DEVICE_TEST_FINGERPRINT,
   ANDROID_PACKAGE_NAME,
   createAndroidAssetLinks,
   parseAndroidFingerprints,
 } from "@/lib/android-asset-links";
 
-const VALID_FINGERPRINT = Array.from(
-  { length: 32 },
-  (_, index) => index.toString(16).padStart(2, "0"),
+const VALID_FINGERPRINT = Array.from({ length: 32 }, (_, index) =>
+  index.toString(16).padStart(2, "0"),
 )
   .join(":")
   .toUpperCase();
@@ -20,7 +20,10 @@ describe("Android Digital Asset Links", () => {
         target: {
           namespace: "android_app",
           package_name: ANDROID_PACKAGE_NAME,
-          sha256_cert_fingerprints: [VALID_FINGERPRINT],
+          sha256_cert_fingerprints: [
+            ANDROID_DEVICE_TEST_FINGERPRINT,
+            VALID_FINGERPRINT,
+          ],
         },
       },
     ]);
@@ -34,7 +37,16 @@ describe("Android Digital Asset Links", () => {
     ).toEqual([VALID_FINGERPRINT]);
   });
 
-  it("publishes no trust statement before a signing key is configured", () => {
-    expect(createAndroidAssetLinks(undefined)).toEqual([]);
+  it("publishes the device-test certificate before a release key is configured", () => {
+    expect(createAndroidAssetLinks(undefined)).toEqual([
+      {
+        relation: ["delegate_permission/common.handle_all_urls"],
+        target: {
+          namespace: "android_app",
+          package_name: ANDROID_PACKAGE_NAME,
+          sha256_cert_fingerprints: [ANDROID_DEVICE_TEST_FINGERPRINT],
+        },
+      },
+    ]);
   });
 });
