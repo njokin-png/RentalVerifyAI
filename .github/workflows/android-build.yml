@@ -37,7 +37,9 @@ jobs:
           gradle-version: "8.13"
 
       - name: Install Android API 36
-        run: sdkmanager "platforms;android-36" "build-tools;35.0.0"
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;35.0.0"
 
       - name: Build debug APK and release bundle
         run: gradle -p android --no-daemon :app:assembleDebug :app:bundleRelease
