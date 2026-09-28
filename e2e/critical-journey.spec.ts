@@ -57,7 +57,7 @@ test("renter can create an account, scan, reopen, and delete an investigation", 
   await page.getByLabel("Bedrooms").fill("3");
   await page.getByLabel("Bathrooms").fill("2");
   await page
-    .getByLabel("Conversation text or emails")
+    .getByLabel("Conversation text, payment instructions, or emails")
     .fill("The landlord wants payment before a tour.");
   await page.getByRole("button", { name: "CHECK THIS RENTAL" }).click();
   await expect(page).toHaveURL(/\/results\/[^/]+$/);
