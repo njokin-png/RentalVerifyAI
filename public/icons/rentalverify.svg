@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="RentalVerify AI shield">
+  <rect width="512" height="512" rx="112" fill="#087f7b"/>
+  <path d="M256 76 406 134v112c0 94-62 160-150 192-88-32-150-98-150-192V134l150-58Z" fill="#fff"/>
+  <path d="m176 257 50 50 112-116" fill="none" stroke="#087f7b" stroke-linecap="round" stroke-linejoin="round" stroke-width="38"/>
+</svg>
