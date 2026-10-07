@@ -1,6 +1,6 @@
 # RentalVerify AI Android package
 
-This module packages the production website as a Trusted Web Activity (TWA), not a bare WebView.
+This module opens the production website in an in-app WebView. It does not depend on a browser launcher or Google Play Services for AR.
 
 ## Current identifiers
 
@@ -9,13 +9,25 @@ This module packages the production website as a Trusted Web Activity (TWA), not
 - Launch URL: `/analyze?source=android-app`
 - Minimum Android: API 23
 - Target Android: API 36
+- Version: 1.0.3 (code 4)
+
+## Back navigation
+
+Android 13 and newer use the platform Back callback; older devices use the legacy handler.
+Both return to the previous page, regardless of sign-in status. With no history, Back returns
+from an entry page to the home page, clearing that fallback history to prevent a loop.
+Back from the home page with no history closes the app.
+
+Test on a phone while signed out and signed in: launch, Back to home, Back to exit; reopen,
+visit Pricing and Log in, then go back through both pages. Photo selection and checkout still
+need device testing. These navigation checks do not consume scans.
 
 ## Local build
 
 Install JDK 17, Android SDK 36, Build Tools 35.0.0, and Gradle 8.13, then run:
 
 ```bash
-gradle -p android :app:assembleDebug :app:bundleRelease
+gradle -p android :app:testDebugUnitTest :app:assembleDebug :app:bundleRelease
 ```
 
 The debug APK is written below `android/app/build/outputs/apk/debug/`. The unsigned release bundle is written below `android/app/build/outputs/bundle/release/`.

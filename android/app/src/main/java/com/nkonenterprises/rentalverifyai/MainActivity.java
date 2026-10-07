@@ -15,6 +15,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
 public final class MainActivity extends Activity {
     private static final String APP_HOST = "rentalverifyai.vercel.app";
@@ -24,10 +26,14 @@ public final class MainActivity extends Activity {
 
     private WebView webView;
     private ValueCallback<Uri[]> pendingFileChooser;
+    private OnBackInvokedCallback backCallback;
+    private boolean clearHistoryOnHomeLoad;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        clearHistoryOnHomeLoad = savedInstanceState != null
+                && savedInstanceState.getBoolean("clearHistoryOnHomeLoad");
 
         webView = new WebView(this);
         webView.setLayoutParams(
@@ -43,7 +49,7 @@ public final class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setUserAgentString(
-                settings.getUserAgentString() + " RentalVerifyAI-Android/1.0.2");
+                settings.getUserAgentString() + " RentalVerifyAI-Android/" + BuildConfig.VERSION_NAME);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.setSafeBrowsingEnabled(true);
@@ -55,6 +61,16 @@ public final class MainActivity extends Activity {
 
         webView.setWebViewClient(
                 new WebViewClient() {
+                    @Override
+                    public void onPageFinished(WebView view, String url) {
+                        Uri uri = Uri.parse(url);
+                        if (clearHistoryOnHomeLoad && isTrustedAppUri(uri)
+                                && "/".equals(uri.getPath())) {
+                            view.clearHistory();
+                            clearHistoryOnHomeLoad = false;
+                        }
+                    }
+
                     @Override
                     public boolean shouldOverrideUrlLoading(
                             WebView view, WebResourceRequest request) {
@@ -105,6 +121,11 @@ public final class MainActivity extends Activity {
         if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
             Uri deepLink = getIntent().getData();
             webView.loadUrl(isTrustedAppUri(deepLink) ? deepLink.toString() : APP_URL);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            backCallback = this::handleBackNavigation;
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, backCallback);
         }
     }
 
@@ -160,21 +181,40 @@ public final class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         webView.saveState(outState);
+        outState.putBoolean("clearHistoryOnHomeLoad", clearHistoryOnHomeLoad);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
+        handleBackNavigation();
+    }
+
+    private void handleBackNavigation() {
+        String url = webView == null ? null : webView.getUrl();
+        Uri uri = url == null ? null : Uri.parse(url);
+        switch (BackNavigation.action(webView != null && webView.canGoBack(),
+                uri == null ? null : uri.getPath())) {
+            case HISTORY:
+                webView.goBack();
+                break;
+            case HOME:
+                clearHistoryOnHomeLoad = true;
+                webView.loadUrl("https://" + APP_HOST + "/");
+                break;
+            case EXIT:
+                finish();
+                break;
         }
     }
 
     @Override
     protected void onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && backCallback != null) {
+            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backCallback);
+            backCallback = null;
+        }
         if (pendingFileChooser != null) {
             pendingFileChooser.onReceiveValue(null);
             pendingFileChooser = null;

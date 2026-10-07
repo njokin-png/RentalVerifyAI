@@ -41,8 +41,8 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;35.0.0"
 
-      - name: Build debug APK and release bundle
-        run: gradle -p android --no-daemon :app:assembleDebug :app:bundleRelease
+      - name: Test navigation and build debug APK and release bundle
+        run: gradle -p android --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:bundleRelease
 
       - name: Upload Android build outputs
         uses: actions/upload-artifact@v4
