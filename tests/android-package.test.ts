@@ -39,7 +39,7 @@ describe("Android package", () => {
     expect(manifest).not.toContain(
       "com.google.androidbrowserhelper.trusted.LauncherActivity",
     );
-    expect(buildConfig).toContain('versionName = "1.0.2"');
+    expect(buildConfig).toContain('versionName = "1.0.3"');
   });
 
   it("loads only the HTTPS RentalVerify host inside the app", () => {
@@ -53,5 +53,8 @@ describe("Android package", () => {
   it("supports listing photos and Android back navigation", () => {
     expect(activity).toContain("onShowFileChooser");
     expect(activity).toContain("webView.canGoBack()");
+    expect(activity).toContain("registerOnBackInvokedCallback");
+    expect(activity).toContain("unregisterOnBackInvokedCallback");
+    expect(activity).toContain("view.clearHistory()");
   });
 });
