@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.graphics.Color;
+import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
@@ -15,6 +18,10 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
@@ -25,9 +32,11 @@ public final class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 1001;
 
     private WebView webView;
+    private Button backButton;
     private ValueCallback<Uri[]> pendingFileChooser;
     private OnBackInvokedCallback backCallback;
     private boolean clearHistoryOnHomeLoad;
+    private long lastExitPromptAt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,12 +44,39 @@ public final class MainActivity extends Activity {
         clearHistoryOnHomeLoad = savedInstanceState != null
                 && savedInstanceState.getBoolean("clearHistoryOnHomeLoad");
 
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.rgb(248, 251, 251));
+
+        LinearLayout navigationBar = new LinearLayout(this);
+        navigationBar.setGravity(Gravity.CENTER_VERTICAL);
+        navigationBar.setPadding(12, 8, 12, 8);
+
+        backButton = new Button(this);
+        backButton.setText("‹ Back");
+        backButton.setAllCaps(false);
+        backButton.setOnClickListener(view -> handleBackNavigation());
+        navigationBar.addView(backButton);
+
+        TextView title = new TextView(this);
+        title.setText("RentalVerifyAI");
+        title.setTextColor(Color.rgb(6, 107, 104));
+        title.setTextSize(18);
+        title.setGravity(Gravity.CENTER_VERTICAL);
+        navigationBar.addView(title, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+
+        root.addView(navigationBar, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
         webView = new WebView(this);
         webView.setLayoutParams(
                 new ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT));
-        setContentView(webView);
+        root.addView(webView, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+        setContentView(root);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -64,6 +100,7 @@ public final class MainActivity extends Activity {
                     @Override
                     public void onPageFinished(WebView view, String url) {
                         Uri uri = Uri.parse(url);
+                        updateBackButton(uri);
                         if (clearHistoryOnHomeLoad && isTrustedAppUri(uri)
                                 && "/".equals(uri.getPath())) {
                             view.clearHistory();
@@ -204,9 +241,23 @@ public final class MainActivity extends Activity {
                 webView.loadUrl("https://" + APP_HOST + "/");
                 break;
             case EXIT:
-                finish();
+                if (System.currentTimeMillis() - lastExitPromptAt < 2000) {
+                    finish();
+                } else {
+                    lastExitPromptAt = System.currentTimeMillis();
+                    Toast.makeText(this, "Press Back again to close RentalVerifyAI", Toast.LENGTH_SHORT)
+                            .show();
+                }
                 break;
         }
+    }
+
+    private void updateBackButton(Uri uri) {
+        if (backButton == null) {
+            return;
+        }
+        boolean isHome = isTrustedAppUri(uri) && "/".equals(uri.getPath());
+        backButton.setVisibility(isHome ? View.INVISIBLE : View.VISIBLE);
     }
 
     @Override
