@@ -39,7 +39,7 @@ describe("Android package", () => {
     expect(manifest).not.toContain(
       "com.google.androidbrowserhelper.trusted.LauncherActivity",
     );
-    expect(buildConfig).toContain('versionName = "1.0.3"');
+    expect(buildConfig).toContain('versionName = "1.0.4"');
   });
 
   it("loads only the HTTPS RentalVerify host inside the app", () => {
@@ -56,5 +56,7 @@ describe("Android package", () => {
     expect(activity).toContain("registerOnBackInvokedCallback");
     expect(activity).toContain("unregisterOnBackInvokedCallback");
     expect(activity).toContain("view.clearHistory()");
+    expect(activity).toContain('backButton.setText("‹ Back")');
+    expect(activity).toContain("Press Back again to close RentalVerifyAI");
   });
 });
