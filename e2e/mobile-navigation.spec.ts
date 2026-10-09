@@ -39,13 +39,13 @@ test("phone users can reach every primary public destination", async ({
 test("checkout return waits for confirmed access and opens the purchased report", async ({
   page,
 }) => {
-  let checks = 0;
+  let accessReady = false;
   await page.route("**/api/checkout/status?*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(
-        ++checks === 1
+        !accessReady
           ? { state: "pending", paid: true, plan: "report" }
           : {
               state: "ready",
@@ -58,6 +58,10 @@ test("checkout return waits for confirmed access and opens the purchased report"
   );
   await page.goto("/checkout/success?session_id=cs_test_browser");
   await expect(page.getByRole("status")).toContainText("still being activated");
+  await expect(
+    page.getByRole("link", { name: "Open your report" }),
+  ).toBeHidden();
+  accessReady = true;
   await expect(
     page.getByRole("link", { name: "Open your report" }),
   ).toBeVisible();
