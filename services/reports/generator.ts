@@ -2,6 +2,7 @@ import type { ScanResult } from "@/lib/types";
 import { checkStatusLabel } from "@/lib/check-status";
 export function reportData(scan: ScanResult) {
   return {
+    isDemo: scan.isDemo || scan.id.startsWith("demo-"),
     title: "RentalVerify AI Investigation Report",
     generatedAt: new Date().toISOString(),
     disclaimer:

@@ -35,3 +35,37 @@ test("phone users can reach every primary public destination", async ({
     ),
   ).resolves.toBe(true);
 });
+
+test("checkout return waits for confirmed access and opens the purchased report", async ({
+  page,
+}) => {
+  let accessReady = false;
+  await page.route("**/api/checkout/status?*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(
+        !accessReady
+          ? { state: "pending", paid: true, plan: "report" }
+          : {
+              state: "ready",
+              paid: true,
+              plan: "report",
+              destination: "/report/demo-rent",
+            },
+      ),
+    }),
+  );
+  await page.goto("/checkout/success?session_id=cs_test_browser");
+  await expect(page.getByRole("status")).toContainText("still being activated");
+  await expect(
+    page.getByRole("link", { name: "Open your report" }),
+  ).toBeHidden();
+  accessReady = true;
+  await expect(
+    page.getByRole("link", { name: "Open your report" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Open your report" }).click();
+  await expect(page).toHaveURL(/\/report\/demo-rent$/);
+  await expect(page.getByText("DEMO REPORT", { exact: true })).toBeVisible();
+});

@@ -30,6 +30,7 @@ export type Check = {
   category: string;
 };
 export type ScanResult = {
+  isDemo?: boolean;
   id: string;
   input: ScanInput;
   score: number;

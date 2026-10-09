@@ -51,7 +51,17 @@ export async function analyzeRental(
   ];
 
   const scored = calculateScore(signals, checks);
+  const isDemo = process.env.DEMO_MODE === "true";
+  checks.push({
+    name: "Assessment mode",
+    status: "analyzed",
+    detail: isDemo
+      ? "Demo assessment: provider findings use simulated data."
+      : "Listing-specific assessment: unavailable checks provide no verification.",
+    category: "scope",
+  });
   return {
+    isDemo,
     id,
     input,
     ...scored,

@@ -8,6 +8,7 @@ const base = (
   title?: string,
 ): ScanResult => ({
   id,
+  isDemo: true,
   input: { address, advertisedRent: rent, listingText: title || "" },
   score,
   classification,

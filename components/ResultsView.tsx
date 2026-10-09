@@ -25,6 +25,13 @@ export function ResultsView({
 
   return (
     <div className="space-y-7">
+      {(scan.isDemo || scan.id.startsWith("demo-")) && (
+        <p className="border border-amber-300 bg-amber-50 p-4">
+          <b>DEMO ASSESSMENT</b> — Example or simulated provider findings. Do
+          not use this result to decide whether to send money or personal
+          information.
+        </p>
+      )}
       <section className="card p-7 grid md:grid-cols-[auto_1fr] gap-8 items-center">
         <ScoreRing score={scan.score} />
         <div>
@@ -33,6 +40,11 @@ export function ResultsView({
             {scan.classification}
           </h1>
           <p className="text-slate-600 mt-2">{scan.input.address}</p>
+          <p className="text-sm text-slate-600 mt-3">
+            Higher scores mean fewer detected warning signs and fewer
+            unavailable checks. This is a rules-based summary, not a probability
+            that a listing is safe. Review the findings and confidence below.
+          </p>
           <div className="flex flex-wrap gap-3 mt-5 text-sm">
             <span className="bg-slate-100 px-3 py-2 rounded-lg">
               <b>{scan.confidence}</b> confidence

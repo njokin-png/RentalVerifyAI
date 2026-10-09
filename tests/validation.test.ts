@@ -1,6 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { scanSchema } from "@/lib/validation";
 describe("scan input validation", () => {
+  it("accepts explicit retention opt-in from a browser form", () => {
+    expect(
+      scanSchema.parse({
+        address: "123 Main Street",
+        advertisedRent: "1800",
+        saveReport: "true",
+      }).saveReport,
+    ).toBe(true);
+    expect(
+      scanSchema.parse({ address: "123 Main Street", advertisedRent: "1800" })
+        .saveReport,
+    ).toBeUndefined();
+  });
   it("accepts a complete rental", () =>
     expect(
       scanSchema.safeParse({

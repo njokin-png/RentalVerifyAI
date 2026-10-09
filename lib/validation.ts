@@ -33,7 +33,10 @@ export const scanSchema = z.object({
     .max(30000)
     .optional()
     .transform((v) => (v ? clean(v) : v)),
-  saveReport: z.boolean().optional(),
+  saveReport: z.preprocess(
+    (value) => (value === "true" ? true : value === "false" ? false : value),
+    z.boolean().optional(),
+  ),
 });
 export const credentialsSchema = z.object({
   email: z.string().email().toLowerCase(),

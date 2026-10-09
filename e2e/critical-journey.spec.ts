@@ -45,11 +45,11 @@ test("renter can create an account, scan, reopen, and delete an investigation", 
     page.getByRole("link", { name: "Log in" }).first(),
   ).toBeVisible();
 
-  await page.goto("/login");
+  await page.goto("/login?next=%2Fpricing%3FscanId%3Dreturn-context");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Log in" }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/pricing\?scanId=return-context$/);
 
   await page.goto("/analyze");
   await page.getByLabel("Property address *").fill(address);
@@ -59,6 +59,15 @@ test("renter can create an account, scan, reopen, and delete an investigation", 
   await page
     .getByLabel("Conversation text, payment instructions, or emails")
     .fill("The landlord wants payment before a tour.");
+  await page.locator('input[name="images"]').setInputFiles({
+    name: "rental-photo.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a7xkAAAAASUVORK5CYII=",
+      "base64",
+    ),
+  });
+  await expect(page.getByRole("status")).toContainText("rental-photo.png");
   await page.getByRole("button", { name: "CHECK THIS RENTAL" }).click();
   await expect(page).toHaveURL(/\/results\/[^/]+$/);
   await expect(

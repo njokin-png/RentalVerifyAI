@@ -13,7 +13,7 @@ export type PropertyRecord = {
 };
 
 export type PropertyVerificationResult = {
-  source: "demo" | "rentcast";
+  source: "demo" | "rentcast" | "none";
   record?: PropertyRecord;
   error?: string;
 };

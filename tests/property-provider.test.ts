@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ScanInput } from "@/lib/types";
 import { getPropertyProvider } from "@/services/property/factory";
-import { DemoPropertyProvider } from "@/services/property/provider";
+import {
+  DemoPropertyProvider,
+  UnavailablePropertyProvider,
+} from "@/services/property/provider";
 import { RentCastPropertyProvider } from "@/services/property/rentcast";
 import { propertyChecks } from "@/services/property/checks";
 
@@ -12,20 +15,30 @@ const input: ScanInput = {
 
 const originalProvider = process.env.PROPERTY_PROVIDER;
 const originalKey = process.env.RENTCAST_API_KEY;
+const originalDemo = process.env.DEMO_MODE;
 
 afterEach(() => {
   process.env.PROPERTY_PROVIDER = originalProvider;
   process.env.RENTCAST_API_KEY = originalKey;
+  if (originalDemo === undefined) delete process.env.DEMO_MODE;
+  else process.env.DEMO_MODE = originalDemo;
 });
 
 describe("property provider selection", () => {
-  it("falls back to demo mode without credentials", () => {
+  it("marks live records unavailable without credentials", () => {
+    process.env.DEMO_MODE = "false";
     process.env.PROPERTY_PROVIDER = "rentcast";
     delete process.env.RENTCAST_API_KEY;
+    expect(getPropertyProvider()).toBeInstanceOf(UnavailablePropertyProvider);
+  });
+
+  it("uses example records only in explicit demo mode", () => {
+    process.env.DEMO_MODE = "true";
     expect(getPropertyProvider()).toBeInstanceOf(DemoPropertyProvider);
   });
 
   it("selects RentCast when configured", () => {
+    process.env.DEMO_MODE = "false";
     process.env.PROPERTY_PROVIDER = "rentcast";
     process.env.RENTCAST_API_KEY = "test-key";
     expect(getPropertyProvider()).toBeInstanceOf(RentCastPropertyProvider);

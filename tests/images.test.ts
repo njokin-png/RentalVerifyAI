@@ -56,8 +56,20 @@ describe("image verification providers", () => {
       DEMO_MODE: "false",
       OCR_PROVIDER: "incomplete",
     });
-    expect(fallback.ocr).toBeInstanceOf(DemoOcrProvider);
-    expect(fallback.reverseImage).toBeInstanceOf(DemoReverseImageProvider);
+    expect(fallback.ocr).not.toBeInstanceOf(DemoOcrProvider);
+    expect(fallback.reverseImage).not.toBeInstanceOf(DemoReverseImageProvider);
+  });
+
+  it("never fabricates filename-based image findings in live mode", async () => {
+    const result = await analyzeImages(
+      [image("pressure-known-match.png")],
+      getImageProviders({ DEMO_MODE: "false" }),
+    );
+    expect(result.signals).toEqual([]);
+    expect(result.checks.every((check) => check.status === "unavailable")).toBe(
+      true,
+    );
+    expect(JSON.stringify(result)).not.toContain("example.test");
   });
 
   it("maps only bounded rental-useful OCR evidence", () => {

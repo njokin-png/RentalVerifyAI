@@ -18,6 +18,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const session = await getSession();
+    if (!session && process.env.DEMO_MODE !== "true")
+      return NextResponse.json(
+        {
+          error:
+            "Sign in to run a rental check and keep it linked to your account.",
+        },
+        { status: 401 },
+      );
     const entitlement = await canCreateScan(session?.userId);
     if (!entitlement.allowed)
       return NextResponse.json(

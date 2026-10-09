@@ -16,7 +16,7 @@ const steps = [
   [
     "2",
     "Run explainable checks",
-    "Deterministic rules and swappable provider adapters review risk signals and verification gaps.",
+    "Review listing language and messages for warning signs, and use available data sources for property and image checks. Unavailable checks are clearly identified.",
   ],
   [
     "3",
