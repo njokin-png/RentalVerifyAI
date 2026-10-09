@@ -61,6 +61,11 @@ function reconstruct(scan: PersistedScan): ScanResult {
       : undefined;
 
   return {
+    isDemo: scan.checks.some(
+      (check) =>
+        check.name === "Assessment mode" &&
+        check.detail.startsWith("Demo assessment:"),
+    ),
     id: scan.id,
     input: {
       address: scan.property?.address ?? "",

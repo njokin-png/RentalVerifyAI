@@ -1,24 +1,46 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { safeReturnPath } from "@/lib/return-path";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const router = useRouter();
 
   async function go(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    const data = Object.fromEntries(new FormData(e.currentTarget));
-    const r = await fetch(`/api/auth/${mode}`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const j = await r.json();
-    if (!r.ok) return setError(j.error);
-    router.push(mode === "signup" ? "/check-email" : "/dashboard");
-    router.refresh();
+    setBusy(true);
+    try {
+      const data = Object.fromEntries(new FormData(e.currentTarget));
+      const r = await fetch(`/api/auth/${mode}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Please try again.");
+      const next = safeReturnPath(
+        new URLSearchParams(window.location.search).get("next") || undefined,
+      );
+      router.push(
+        mode === "signup"
+          ? next === "/dashboard"
+            ? "/check-email"
+            : `/check-email?next=${encodeURIComponent(next)}`
+          : next,
+      );
+      router.refresh();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Could not connect. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -52,8 +74,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         <span className="text-xs text-slate-500">At least 10 characters</span>
       </label>
       {error && <p className="text-red-700 text-sm">{error}</p>}
-      <button className="btn w-full">
-        {mode === "login" ? "Log in" : "Create secure account"}
+      <button className="btn w-full" disabled={busy}>
+        {busy
+          ? "PLEASE WAIT…"
+          : mode === "login"
+            ? "Log in"
+            : "Create secure account"}
       </button>
     </form>
   );

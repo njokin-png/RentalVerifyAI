@@ -33,6 +33,12 @@ export default async function Report(props: {
   const r = reportData(scan);
   return (
     <div className="container max-w-4xl py-12">
+      {r.isDemo && (
+        <p className="border border-amber-300 bg-amber-50 p-4 mb-6">
+          <b>DEMO REPORT</b> — Example or simulated provider findings, not
+          independent verification of a rental listing.
+        </p>
+      )}
       <div className="flex justify-between no-print">
         <div>
           <p className="eyebrow">INVESTIGATION REPORT</p>
@@ -41,6 +47,11 @@ export default async function Report(props: {
         <PrintButton />
       </div>
       <p className="print-only text-sm">Generated {r.generatedAt}</p>
+      <p className="text-sm text-slate-600 mt-4">
+        Higher scores mean fewer detected warning signs and fewer unavailable
+        checks. The score is not a safety probability. Assessment performed{" "}
+        {scan.createdAt}; data may change.
+      </p>
       <div className="card p-7 mt-7">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>

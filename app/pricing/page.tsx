@@ -17,24 +17,25 @@ export const metadata: Metadata = {
 const features = {
   free: [
     `${PLANS.free.monthlyScanLimit} basic scans per month`,
-    "Listing text analysis",
-    "Scam warning signs",
-    "Basic Trust Score",
+    "Listing and message warning signs",
+    "Optional images (checks depend on provider availability)",
+    "Score, check findings, gaps, and next steps",
+    "Account scan history and deletion controls",
   ],
   report: [
-    "One full property report",
-    "Full risk analysis",
-    "Communication analysis",
-    "Printable, PDF-ready report",
+    "Printable report for one existing scan",
+    "The scan's findings, limitations, and next steps in one document",
+    "Print or save as PDF using your browser",
+    "One-time payment; no subscription",
   ],
   pro: [
     PLANS.pro.monthlyScanLimit === null
       ? "Unlimited scans"
       : `${PLANS.pro.monthlyScanLimit} scans per month`,
-    "Saved reports",
-    "Advanced verification",
-    "Communication analysis",
-    "Image uploads",
+    "Printable report access for your scans while Pro is active",
+    "Listing, message, and optional image analysis",
+    "Same available checks; Pro does not guarantee additional data",
+    "Renews monthly; manage cancellation from Account",
   ],
 };
 
@@ -59,7 +60,7 @@ export default async function Pricing(props: {
       <div className="text-center">
         <p className="eyebrow">CLEAR PRICING</p>
         <h1 className="text-4xl font-extrabold mt-2">
-          Choose the level of verification you need
+          Choose how many rentals you need to check
         </h1>
         <p className="text-slate-600 mt-3">
           {configured
@@ -69,6 +70,12 @@ export default async function Pricing(props: {
             : "Paid checkout is currently unavailable. Free scans remain available."}
         </p>
       </div>
+      <p className="max-w-3xl mx-auto mt-6 text-center text-sm text-slate-600">
+        Every assessment shows which checks ran and which were unavailable.
+        Buying a report adds a printable document; it does not rerun the scan,
+        verify ownership, or guarantee safety. Pro removes the monthly scan
+        limit; request rate limits still apply.
+      </p>
       <div className="grid md:grid-cols-3 gap-6 mt-12">
         {plans.map(([key, plan], i) => (
           <div
@@ -97,7 +104,8 @@ export default async function Pricing(props: {
             )}
             {key === "report" && !searchParams.scanId && (
               <p className="text-xs text-slate-500 mt-2">
-                Run or open a scan to purchase its report.
+                Run a free scan or reopen one from history, then choose Get
+                report on its results page.
               </p>
             )}
           </div>

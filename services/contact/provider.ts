@@ -10,10 +10,10 @@ export class DemoContactProvider implements ContactVerificationProvider {
     const signals: RiskSignalInput[] = [];
     checks.push({
       name: "Contact supplied",
-      status: i.email || i.phone ? "verified" : "unverified",
+      status: i.email || i.phone ? "analyzed" : "unverified",
       detail:
         i.email || i.phone
-          ? "At least one contact method was supplied."
+          ? "At least one contact method was supplied. Identity and authority to rent this property have not been verified."
           : "No email or phone was supplied.",
       category: "contact",
     });

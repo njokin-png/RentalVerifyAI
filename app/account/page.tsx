@@ -53,9 +53,10 @@ export default async function Account() {
         <div>
           <span className="label">Conversation retention</span>
           <p className="text-sm text-slate-600">
-            Conversation text is transient unless a report is explicitly saved.
-            You can permanently remove individual investigations from history or
-            erase all saved investigations below.
+            Full conversation text is saved only if you opt in. Matched excerpts
+            and analysis findings may be saved with a scan. You can permanently
+            remove individual investigations from history or erase all saved
+            investigations below.
           </p>
         </div>
         <div className="border-t pt-5">

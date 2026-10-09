@@ -66,6 +66,12 @@ afterEach(() => {
 });
 
 describe("scan persistence failures", () => {
+  it("requires an account for a live scan before running providers", async () => {
+    mocks.getSession.mockResolvedValue(null);
+    expect((await POST(request())).status).toBe(401);
+    expect(mocks.analyzeRental).not.toHaveBeenCalled();
+    expect(mocks.saveScan).not.toHaveBeenCalled();
+  });
   it("returns a safe 503 and never falls back to memory in production", async () => {
     const response = await POST(request());
 

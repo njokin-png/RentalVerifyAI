@@ -16,3 +16,13 @@ export class DemoPropertyProvider implements PropertyProvider {
         };
   }
 }
+
+export class UnavailablePropertyProvider implements PropertyProvider {
+  async verify(): Promise<PropertyVerificationResult> {
+    return {
+      source: "none",
+      error:
+        "Live property records are not configured. Verify the property and ownership independently.",
+    };
+  }
+}
