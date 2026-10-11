@@ -71,7 +71,21 @@ export function ScanHistoryTable({ scans }: { scans: ScanHistoryItem[] }) {
         <tbody>
           {scans.map((scan) => (
             <tr className="border-t" key={scan.id}>
-              <td className="p-4 font-semibold">{scan.address}</td>
+              <td className="min-w-[11rem] p-4 font-semibold">
+                <Link
+                  className="block text-teal-700 underline decoration-teal-300 underline-offset-4 hover:text-teal-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700"
+                  href={`/results/${encodeURIComponent(scan.id)}`}
+                >
+                  {scan.address}
+                </Link>
+                <Link
+                  className="mt-2 inline-flex min-h-11 items-center rounded-lg bg-teal-700 px-3 py-2 font-bold text-white hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+                  href={`/results/${encodeURIComponent(scan.id)}`}
+                  aria-label={`View results for ${scan.address}`}
+                >
+                  View results
+                </Link>
+              </td>
               <td className="p-4">
                 {new Date(scan.createdAt).toLocaleDateString()}
               </td>
@@ -80,7 +94,7 @@ export function ScanHistoryTable({ scans }: { scans: ScanHistoryItem[] }) {
               <td className="p-4">
                 <Link
                   className="font-bold text-teal-700"
-                  href={`/results/${scan.id}`}
+                  href={`/results/${encodeURIComponent(scan.id)}`}
                 >
                   Reopen
                 </Link>
