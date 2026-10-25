@@ -2,6 +2,12 @@ name: Android package build
 
 on:
   workflow_dispatch:
+    inputs:
+      signed_release:
+        description: "Build a stable signed release APK and AAB"
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - feature/android-twa-package
@@ -41,14 +47,39 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;35.0.0"
 
-      - name: Test navigation and build debug APK and release bundle
-        run: gradle -p android --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:bundleRelease
+      - name: Test Android navigation
+        run: gradle -p android --no-daemon :app:testDebugUnitTest
 
-      - name: Upload Android build outputs
+      - name: Verify stable-signing secrets
+        if: ${{ inputs.signed_release }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RENTALVERIFYAI_ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.RENTALVERIFYAI_ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RENTALVERIFYAI_ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RENTALVERIFYAI_ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$KEYSTORE_BASE64"
+          test -n "$STORE_PASSWORD"
+          test -n "$KEY_ALIAS"
+          test -n "$KEY_PASSWORD"
+
+      - name: Build stable signed release
+        if: ${{ inputs.signed_release }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RENTALVERIFYAI_ANDROID_KEYSTORE_BASE64 }}
+          ORG_GRADLE_PROJECT_RENTALVERIFYAI_RELEASE_STORE_PASSWORD: ${{ secrets.RENTALVERIFYAI_ANDROID_STORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_RENTALVERIFYAI_RELEASE_KEY_ALIAS: ${{ secrets.RENTALVERIFYAI_ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_RENTALVERIFYAI_RELEASE_KEY_PASSWORD: ${{ secrets.RENTALVERIFYAI_ANDROID_KEY_PASSWORD }}
+        run: |
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/rentalverifyai-release.keystore"
+          gradle -p android --no-daemon             -PRENTALVERIFYAI_REQUIRE_RELEASE_SIGNING=true             -PRENTALVERIFYAI_RELEASE_STORE_FILE="$RUNNER_TEMP/rentalverifyai-release.keystore"             :app:assembleRelease :app:bundleRelease
+
+      - name: Upload stable signed release
+        if: ${{ inputs.signed_release }}
         uses: actions/upload-artifact@v4
         with:
-          name: rentalverify-android-build
+          name: rentalverify-android-signed-release
           path: |
-            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/apk/release/*.apk
             android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
